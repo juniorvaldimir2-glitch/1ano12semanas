@@ -1,0 +1,1310 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>1 Ano em 12 Semanas — Sistema</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#FFFFFF; --paper-raised:#FFFFFF; --ink:#14201C; --muted:#222824;
+    --line:#DCEAE4; --teal:#0E3A34; --teal-soft:#DCE7E3; --green:#1BA672; --green-soft:#E3F5EC;
+    --gold:#BE8A34; --gold-soft:#F3E6C8; --alert:#A44A34; --alert-soft:#F1DCD4;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:1120px;margin:0 auto;padding:28px 24px 100px;}
+
+  header.top{display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:20px;border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:6px;}
+  h1{font-family:'Poppins',sans-serif;font-weight:800;font-size:1.7rem;margin:0 0 4px;letter-spacing:-0.01em;color:#0F1112;}
+  .sub{color:var(--muted);font-size:0.85rem;max-width:48ch;line-height:1.5;}
+
+  .cycle-box{background:var(--green-soft);border:1px solid var(--line);border-left:3px solid var(--teal);border-radius:4px;padding:10px 16px;min-width:250px;}
+  .cycle-box .row{display:flex;justify-content:space-between;gap:14px;margin-bottom:5px;font-size:0.8rem;}
+  .cycle-box .row:last-child{margin-bottom:0;}
+  .cycle-box label{color:var(--muted);}
+  .cycle-box input[type=text], .cycle-box input[type=date]{font-family:'Inter',sans-serif;border:none;background:transparent;text-align:right;font-size:0.8rem;color:var(--ink);font-weight:600;width:145px;}
+  .cycle-box input:focus{outline:1px solid var(--teal);border-radius:2px;}
+
+  .backup-row{display:flex;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap;}
+  .backup-hint{font-size:0.74rem;color:var(--muted);}
+  .backup-sep{color:var(--line);}
+  .backup-btn{background:var(--green-soft);border:1px solid var(--line);color:var(--teal);font-size:0.72rem;font-weight:600;text-decoration:none;cursor:pointer;font-family:'Inter',sans-serif;padding:5px 11px;border-radius:20px;}
+  .backup-btn:hover{background:var(--green);color:#fff;border-color:var(--green);}
+
+  .title-block{position:relative;padding-left:16px;}
+  .title-block::before{content:'';position:absolute;left:0;top:2px;bottom:2px;width:5px;border-radius:3px;background:linear-gradient(180deg,var(--green),var(--teal));}
+  .accent-word{color:var(--teal);}
+
+  nav.tabs{display:flex;gap:2px;margin:16px 0 22px;border-bottom:1px solid var(--line);flex-wrap:wrap;}
+  nav.tabs button{font-family:'Inter',sans-serif;font-size:0.82rem;font-weight:500;color:var(--muted);background:none;border:none;padding:9px 12px;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;}
+  nav.tabs button.active{color:var(--ink);border-bottom-color:var(--green);border-bottom-width:3px;font-weight:600;}
+  nav.tabs button:hover{color:var(--ink);}
+  nav.tabs button.dragging{opacity:0.4;}
+  nav.tabs button.drag-over{border-left:2px solid var(--gold);}
+  .tab-panel{display:none;}
+  .tab-panel.active{display:block;}
+
+  .panel-title{font-family:'Poppins',sans-serif;font-weight:700;font-size:1.05rem;margin:0 0 3px;color:#0F1112;}
+  .panel-hint{color:var(--muted);font-size:0.82rem;margin:0 0 14px;max-width:66ch;line-height:1.5;}
+  .sub-block{margin-bottom:34px;}
+
+  /* ciclo: hero + area bars (compact) */
+  .hero-card{background:var(--green-soft);border:1px solid var(--line);border-top:3px solid var(--teal);border-radius:8px;padding:16px 20px;}
+  .hero-label{font-size:0.72rem;color:var(--muted);margin:0 0 8px;}
+  .hero-bar-track{width:100%;height:16px;background:#EFEDE8;border-radius:8px;overflow:hidden;}
+  .hero-bar-fill{height:100%;border-radius:8px;background:linear-gradient(90deg,var(--green),var(--teal));transition:width .3s ease;}
+  .hero-num{font-family:'Poppins',sans-serif;font-weight:700;font-size:1.15rem;margin:8px 0 0;color:var(--teal);}
+
+  .area-row{display:flex;align-items:center;gap:12px;padding:6px 0;}
+  .area-row-name-wrap{position:relative;flex-shrink:0;display:flex;align-items:center;}
+  .area-row-name{font-family:'Inter',sans-serif;font-weight:600;font-size:0.85rem;border:none;background:transparent;color:var(--ink);padding:0;width:150px;min-width:70px;max-width:320px;}
+  .area-row-name:focus{outline:none;border-bottom:1px solid var(--ink);}
+  .area-row-name-handle{width:9px;height:14px;margin-left:2px;cursor:ew-resize;flex-shrink:0;position:relative;}
+  .area-row-name-handle::before{content:'';position:absolute;left:3px;top:0;bottom:0;width:2px;background:var(--line);border-radius:1px;}
+  .area-row-name-handle:hover::before{background:var(--teal);}
+  .area-row-bar{position:relative;flex:1;height:14px;}
+  .area-row-track{position:absolute;inset:0;background:#EFEDE8;border-radius:7px;overflow:hidden;}
+  .area-row-fill{height:100%;border-radius:7px;transition:width .12s ease;}
+  .area-row-range{position:absolute;inset:0;width:100%;height:14px;margin:0;opacity:0;cursor:pointer;}
+  .area-row-score{font-size:0.78rem;color:var(--muted);width:34px;text-align:right;flex-shrink:0;}
+  .area-row-x{background:none;border:none;color:var(--line);font-size:0.85rem;cursor:pointer;flex-shrink:0;padding:0 2px;}
+  .area-row-x:hover{color:var(--alert);}
+
+  .bullet-block{margin-bottom:26px;}
+  .bullet-heading{font-family:'Poppins',sans-serif;font-weight:700;font-size:1.5rem;margin:0 0 12px;color:#0F1112;}
+  .bullet-row{display:flex;align-items:flex-start;gap:8px;margin-bottom:4px;}
+  .bullet-dot{color:var(--muted);font-size:0.9rem;line-height:1.7;flex-shrink:0;}
+  .bullet-row input[type=text]{
+    flex:1;font-family:'Inter',sans-serif;font-size:0.88rem;line-height:1.6;color:var(--ink);
+    border:none;background:transparent;padding:2px 0;border-bottom:1px solid transparent;
+  }
+  .bullet-row input[type=text]:focus{outline:none;border-bottom-color:var(--teal);}
+  .bullet-row .bullet-del{background:none;border:none;color:#C9C6BE;cursor:pointer;font-size:0.78rem;opacity:0.7;flex-shrink:0;}
+  .bullet-row .bullet-del:hover{opacity:1;color:var(--alert);}
+  .bullet-add{background:none;border:none;color:var(--muted);font-size:0.78rem;cursor:pointer;padding:2px 0 0 20px;}
+  .bullet-add:hover{color:var(--teal);}
+  .bullet-remove-area{background:none;border:none;color:var(--muted);font-size:0.74rem;cursor:pointer;text-decoration:underline;padding:0;margin-top:8px;}
+  .bullet-remove-area:hover{color:var(--alert);}
+  input.bullet-heading{width:100%;border:none;background:transparent;padding:0 0 10px;}
+  input.bullet-heading:focus{outline:none;border-bottom:1px solid var(--ink);}
+
+  .cover-wrap{position:relative;margin-bottom:24px;border-radius:6px;overflow:hidden;}
+  .cover-img{width:100%;height:220px;object-fit:cover;display:block;}
+  .cover-actions{position:absolute;top:10px;right:10px;display:flex;gap:6px;}
+  .cover-btn{background:rgba(255,255,255,0.92);border:1px solid var(--line);border-radius:4px;font-size:0.72rem;padding:5px 10px;cursor:pointer;font-family:'Inter',sans-serif;}
+  .cover-btn:hover{background:#fff;}
+  .cover-placeholder{width:100%;height:52px;border:1px dashed var(--line);border-radius:6px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:0.8rem;cursor:pointer;margin-bottom:22px;background:none;font-family:'Inter',sans-serif;}
+  .cover-placeholder:hover{border-color:var(--teal);color:var(--teal);}
+  .cover-reposition-bar{position:absolute;left:10px;right:10px;bottom:10px;background:rgba(255,255,255,0.95);border-radius:6px;padding:8px 12px;display:flex;align-items:center;gap:10px;}
+  .cover-reposition-bar input[type=range]{flex:1;accent-color:var(--green);}
+  .cover-reposition-bar button{font-size:0.72rem;background:none;border:1px solid var(--line);border-radius:4px;padding:4px 9px;cursor:pointer;font-family:'Inter',sans-serif;}
+
+  /* radar (legacy, unused styles kept harmless) */
+  section.grid-main{display:grid;grid-template-columns:1fr 1fr;gap:36px;align-items:start;margin-bottom:40px;}
+  @media(max-width:820px){ section.grid-main{grid-template-columns:1fr;} }
+  .radar-panel{background:var(--paper-raised);border:1px solid var(--line);border-radius:4px;padding:22px;}
+  .rank-item{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--line);}
+  .rank-item:last-child{border-bottom:none;}
+  .rank-num{font-family:'Poppins',sans-serif;font-weight:700;color:var(--muted);font-size:0.8rem;width:16px;}
+  .rank-name{flex:1;font-size:0.88rem;font-weight:500;}
+  .rank-bar-track{width:96px;height:6px;background:var(--line);border-radius:3px;overflow:hidden;}
+  .rank-bar-fill{height:100%;background:var(--teal);}
+  .rank-score{font-size:0.78rem;color:var(--muted);width:32px;text-align:right;}
+  .rank-item.weak .rank-bar-fill{background:var(--alert);}
+  .rank-item.weak .rank-name{color:var(--alert);}
+  .focus-flag{font-size:0.64rem;background:var(--gold-soft);color:#7A5A16;padding:2px 6px;border-radius:3px;white-space:nowrap;margin-left:6px;}
+
+  .area-card{background:var(--paper-raised);border:1px solid var(--line);border-radius:4px;margin-bottom:12px;}
+  .area-head{display:flex;align-items:center;gap:14px;padding:14px 18px;cursor:pointer;}
+  .area-name-input{font-family:'Poppins',sans-serif;font-weight:700;font-size:1rem;border:none;background:transparent;color:var(--ink);flex:1;min-width:0;}
+  .area-name-input:focus{outline:none;border-bottom:1px solid var(--teal);}
+  .score-pill{font-family:'Poppins',sans-serif;font-weight:700;font-size:1.05rem;color:var(--teal);width:28px;text-align:right;}
+  .chevron{color:var(--muted);font-size:0.75rem;transition:transform .15s;}
+  .area-card.open .chevron{transform:rotate(90deg);}
+  .area-body{max-height:0;overflow:hidden;transition:max-height .25s ease;padding:0 18px;}
+  .area-card.open .area-body{max-height:900px;padding:0 18px 18px;}
+  .field-label{font-size:0.7rem;color:var(--muted);margin:12px 0 5px;}
+  input[type=range]{width:100%;accent-color:var(--teal);}
+  textarea{width:100%;font-family:'Inter',sans-serif;font-size:0.86rem;line-height:1.5;border:1px solid var(--line);border-radius:3px;padding:9px 11px;resize:vertical;min-height:56px;background:#fff;color:var(--ink);}
+  textarea:focus{outline:1px solid var(--teal);}
+  .remove-link{background:none;border:none;color:var(--muted);font-size:0.74rem;cursor:pointer;margin-top:8px;text-decoration:underline;padding:0;}
+  .remove-link:hover{color:var(--alert);}
+  .add-btn{display:inline-flex;align-items:center;gap:6px;background:none;border:1px dashed var(--line);color:var(--muted);font-size:0.83rem;padding:9px 15px;border-radius:4px;cursor:pointer;font-family:'Inter',sans-serif;}
+  .add-btn:hover{border-color:var(--green);color:var(--green);}
+
+  /* metas */
+  .meta-card{background:var(--paper-raised);border:1px solid var(--line);border-top:3px solid var(--green);border-radius:4px;padding:18px 20px;margin-bottom:16px;}
+  .meta-top{display:grid;grid-template-columns:1fr 150px;gap:12px;margin-bottom:10px;}
+  .meta-top textarea{min-height:44px;font-family:'Poppins',sans-serif;font-weight:700;font-size:1.02rem;}
+  select{font-family:'Inter',sans-serif;font-size:0.82rem;border:1px solid var(--line);border-radius:3px;padding:8px 9px;background:#fff;color:var(--ink);}
+  select:focus{outline:1px solid var(--teal);}
+  .lag-row{display:grid;grid-template-columns:1fr 90px 100px;gap:10px;align-items:center;margin-bottom:14px;}
+  .lag-row input[type=text], .lag-row input[type=number]{font-family:'Inter',sans-serif;font-size:0.82rem;border:1px solid var(--line);border-radius:3px;padding:8px 9px;background:#fff;color:var(--ink);width:100%;}
+  .lag-row input:focus{outline:1px solid var(--teal);}
+  .lag-target-hint{font-size:0.72rem;color:var(--muted);margin:-8px 0 14px;}
+  .tatica-list{border-top:1px solid var(--line);padding-top:12px;}
+  .tatica-row{display:grid;grid-template-columns:1fr 110px 90px 30px;gap:8px;align-items:center;padding:6px 0;}
+  .tatica-row input[type=text]{font-family:'Inter',sans-serif;font-size:0.84rem;border:1px solid var(--line);border-radius:3px;padding:7px 9px;background:#fff;color:var(--ink);width:100%;}
+  .tatica-row select, .tatica-row input[type=number]{font-size:0.8rem;padding:7px 8px;}
+  .del-x{background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.95rem;}
+  .del-x:hover{color:var(--alert);}
+  .meta-actions{display:flex;justify-content:space-between;align-items:center;margin-top:12px;}
+
+  /* semana */
+  .week-pills{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:26px;}
+  .week-pill{width:52px;height:52px;border-radius:4px;border:1px solid var(--line);background:var(--green-soft);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;font-family:'Inter',sans-serif;}
+  .week-pill .wn{font-size:0.66rem;color:var(--muted);}
+  .week-pill.has-data .wn{color:rgba(255,255,255,0.85);}
+  .week-pill .wp{font-size:0.7rem;font-weight:600;color:var(--ink);}
+  .week-pill.has-data .wp{color:#fff;}
+  .week-pill.selected{border-color:var(--teal);border-width:2px;}
+  .week-pill.has-data{background:var(--green);}
+
+  .week-panel{background:var(--paper-raised);border:1px solid var(--line);border-top:3px solid var(--green);border-radius:4px;padding:22px;margin-bottom:26px;}
+  .week-panel-title{font-family:'Poppins',sans-serif;font-weight:700;font-size:1.1rem;margin:0 0 4px;}
+  .week-pct-line{display:flex;align-items:center;gap:14px;margin:6px 0 18px;}
+  .week-pct-num{font-family:'Poppins',sans-serif;font-weight:700;font-size:1.5rem;color:var(--green);}
+
+  .plan-row{display:grid;grid-template-columns:1fr 90px 100px;gap:12px;align-items:center;padding:9px 0;border-bottom:1px solid var(--line);}
+  .plan-row:last-child{border-bottom:none;}
+  .plan-name{font-size:0.87rem;}
+  .plan-name .meta-note{color:var(--muted);font-size:0.75rem;display:block;}
+  .mini-track{height:5px;background:var(--line);border-radius:3px;overflow:hidden;margin-top:5px;}
+  .mini-fill{height:100%;background:var(--teal);}
+  .plan-row input[type=number]{width:70px;font-size:0.82rem;padding:6px 8px;border:1px solid var(--line);border-radius:3px;}
+  .plan-row input[type=checkbox]{width:20px;height:20px;accent-color:var(--teal);}
+
+  .routine-check{display:flex;gap:22px;flex-wrap:wrap;margin:18px 0;padding:14px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);}
+  .routine-check label{display:flex;align-items:center;gap:8px;font-size:0.85rem;cursor:pointer;}
+  .routine-check input{width:18px;height:18px;accent-color:var(--green);}
+
+  .lag-input-row{display:grid;grid-template-columns:1fr 120px;gap:10px;align-items:center;padding:8px 0;}
+  .lag-input-row input{font-family:'Inter',sans-serif;font-size:0.85rem;border:1px solid var(--line);border-radius:3px;padding:8px 9px;background:#fff;color:var(--ink);width:100%;}
+
+  .review-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-top:20px;}
+  @media(max-width:820px){ .review-grid{grid-template-columns:1fr;} }
+  .review-field label{font-size:0.72rem;color:var(--muted);display:block;margin-bottom:6px;}
+  .review-field textarea{min-height:80px;}
+
+  /* placar */
+  .cycle-progress{background:var(--green-soft);border:1px solid var(--line);border-top:3px solid var(--teal);border-radius:4px;padding:22px 24px;margin-bottom:28px;}
+  .cycle-progress-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;}
+  .cycle-progress-num{font-family:'Poppins',sans-serif;font-weight:700;font-size:2rem;}
+  .big-track{width:100%;height:10px;background:var(--line);border-radius:5px;overflow:hidden;}
+  .big-fill{height:100%;}
+  .status-line{margin:10px 0 0;font-size:0.84rem;color:var(--muted);}
+
+  .conclude-block{margin-top:36px;padding-top:20px;border-top:1px solid var(--line);}
+  .conclude-btn{background:var(--teal);color:#fff;border:none;border-radius:4px;padding:11px 20px;font-size:0.86rem;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;}
+  .conclude-btn:hover{background:#1c433e;}
+
+  .history-card{background:#fff;border:1px solid var(--line);border-top:3px solid var(--teal);border-radius:6px;padding:16px 20px;margin-bottom:14px;}
+  .history-top{display:flex;justify-content:space-between;align-items:baseline;}
+  .history-name{font-family:'Poppins',sans-serif;font-weight:700;font-size:1rem;color:#0F1112;}
+  .history-pct{font-size:0.85rem;color:var(--green);font-weight:600;}
+  .history-dates{font-size:0.78rem;color:var(--muted);margin:2px 0 10px;}
+  .history-metas{margin:0;padding-left:18px;font-size:0.85rem;line-height:1.7;}
+  .history-detail{margin-top:14px;padding-top:14px;border-top:1px solid var(--line);}
+  .history-subtitle{font-family:'Poppins',sans-serif;font-weight:700;font-size:0.85rem;margin:0 0 8px;color:#0F1112;}
+  .history-meta-block{margin-bottom:12px;}
+  .history-meta-title{font-size:0.88rem;font-weight:600;margin:0 0 4px;}
+  .history-week-note{background:var(--green-soft);border:1px solid var(--line);border-radius:4px;padding:10px 12px;margin-bottom:8px;font-size:0.82rem;}
+  .history-week-note-title{font-weight:600;margin:0 0 4px;}
+  .history-week-note p{margin:2px 0;}
+
+  .lag-table-wrap{overflow-x:auto;}
+  table.lag-table{border-collapse:collapse;width:100%;font-size:0.78rem;}
+  table.lag-table th, table.lag-table td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:center;white-space:nowrap;}
+  table.lag-table th:first-child, table.lag-table td:first-child{text-align:left;position:sticky;left:0;background:var(--paper-raised);}
+  table.lag-table th{color:var(--muted);font-weight:500;}
+
+  /* tempo & equipe */
+  .block-row{display:grid;grid-template-columns:130px 110px 90px 90px 32px;gap:10px;align-items:center;padding:9px 0;border-bottom:1px solid var(--line);}
+  .block-row:last-child{border-bottom:none;}
+  .block-row input, .block-row select{font-family:'Inter',sans-serif;font-size:0.82rem;border:1px solid var(--line);border-radius:3px;padding:7px 8px;background:#fff;width:100%;}
+  .block-label{font-size:0.85rem;font-weight:500;}
+
+  .team-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+  @media(max-width:820px){ .team-grid{grid-template-columns:1fr;} }
+  .field-block label{font-size:0.72rem;color:var(--muted);display:block;margin-bottom:6px;}
+  .field-block input[type=text]{width:100%;font-family:'Inter',sans-serif;font-size:0.88rem;border:1px solid var(--line);border-radius:3px;padding:9px 11px;background:#fff;}
+
+  .empty-note{color:var(--muted);font-size:0.86rem;padding:16px 0;}
+  .save-status{position:fixed;bottom:20px;right:24px;font-size:0.75rem;color:var(--muted);background:var(--paper-raised);border:1px solid var(--line);padding:6px 12px;border-radius:20px;opacity:0;transition:opacity .3s;}
+  .save-status.show{opacity:1;}
+  /* remove native number-input spinner arrows everywhere */
+  input[type=number]::-webkit-outer-spin-button,
+  input[type=number]::-webkit-inner-spin-button{
+    -webkit-appearance:none;
+    margin:0;
+  }
+  input[type=number]{
+    -moz-appearance:textfield;
+    appearance:textfield;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="title-block">
+      <h1>1 Ano em <span class="accent-word">12 Semanas</span></h1>
+      <p class="sub">Perspectiva, metas de doze semanas com indicadores de vantagem e atraso, plano semanal, placar e uso do tempo — o sistema do livro, em uma ferramenta.</p>
+    </div>
+    <div class="cycle-box">
+      <div class="row"><label>Ciclo</label><input type="text" id="cycleName" value="A Virada"></div>
+      <div class="row"><label>Início</label><input type="date" id="cycleStart"></div>
+      <div class="row"><label>Fim (12 sem.)</label><input type="date" id="cycleEnd" disabled></div>
+    </div>
+  </header>
+
+  <div class="backup-row">
+    <span class="backup-hint">seus dados ficam neste navegador/dispositivo —</span>
+    <button class="backup-btn" id="exportBtn">exportar backup</button>
+    <span class="backup-sep">·</span>
+    <button class="backup-btn" id="importBtn">importar backup</button>
+    <input type="file" id="importFileInput" accept="application/json" style="display:none;">
+  </div>
+
+  <nav class="tabs" id="tabNav"></nav>
+
+  <!-- CICLO -->
+  <div class="tab-panel" id="tab-ciclo">
+    <div class="hero-card">
+      <p class="hero-label">equilíbrio médio das áreas</p>
+      <div class="hero-bar-track"><div class="hero-bar-fill" id="heroBarFill"></div></div>
+      <p class="hero-num" id="heroNum">—</p>
+    </div>
+    <p class="panel-title" style="margin-top:18px;">Áreas</p>
+    <p class="panel-hint">Nota de hoje (0-10). Arraste a barra pra ajustar.</p>
+    <div id="areaBars"></div>
+    <button class="add-btn" id="addAreaBtn">+ adicionar área</button>
+  </div>
+
+  <!-- VISÃO DE VIDA -->
+  <div class="tab-panel" id="tab-visao">
+    <p class="panel-title">Visão de vida</p>
+    <p class="panel-hint">O futuro distante, sem se preocupar em como chegar lá.</p>
+    <div id="visaoCoverContainer"></div>
+    <div id="visaoBulletsList"></div>
+  </div>
+
+  <!-- L3 -->
+  <div class="tab-panel" id="tab-l3">
+    <p class="panel-title">L3 — próximos 3 anos</p>
+    <p class="panel-hint">A versão reduzida da sua visão pros próximos 3 anos. É daqui que suas metas de 12 semanas nascem.</p>
+    <div id="l3CoverContainer"></div>
+    <div id="l3BulletsList"></div>
+  </div>
+
+  <!-- METAS -->
+  <div class="tab-panel" id="tab-metas">
+    <p class="panel-title">Metas de 12 semanas</p>
+    <p class="panel-hint">Recomendado: 1 a 3 metas. Cada meta pode ter um indicador de atraso (o resultado final, medido semana a semana) e uma lista de táticas — as ações que efetivamente te levam até lá.</p>
+    <div id="metasList"></div>
+    <button class="add-btn" id="addMetaBtn">+ adicionar meta</button>
+  </div>
+
+  <!-- SEMANA -->
+  <div class="tab-panel" id="tab-semana">
+    <p class="panel-title">Selecione a semana</p>
+    <p class="panel-hint">O plano da semana é derivado direto do seu plano de 12 semanas: só aparecem aqui as táticas recorrentes e as táticas de uma vez marcadas pra esta semana.</p>
+    <div class="week-pills" id="weekPills"></div>
+    <div class="week-panel" id="weekPanel"></div>
+  </div>
+
+  <!-- PLACAR -->
+  <div class="tab-panel" id="tab-placar">
+    <p class="panel-hint" style="margin-bottom:18px;">Dois indicadores, os dois aqui: <strong>execução</strong> (o que você fez — o número grande abaixo) e <strong>resultado</strong> (o que aconteceu — a tabela mais embaixo, um por meta).</p>
+    <div class="cycle-progress">
+      <div class="cycle-progress-top">
+        <span class="panel-title" style="margin:0;">Execução</span>
+        <span class="cycle-progress-num" id="cycleProgressNum">0%</span>
+      </div>
+      <div class="big-track"><div class="big-fill" id="cycleProgressFill" style="width:0%"></div></div>
+      <p class="status-line" id="cycleStatusLine"></p>
+    </div>
+    <div class="sub-block">
+      <p class="panel-title">Resultados (indicador de atraso)</p>
+      <p class="panel-hint">O resultado final de cada meta, semana a semana — separado da execução. Pode estar executando bem e ainda não ver o resultado; é normal, ele vem atrasado.</p>
+      <div class="lag-table-wrap"><table class="lag-table" id="lagTable"></table></div>
+    </div>
+    <div class="sub-block conclude-block">
+      <p class="panel-title">Concluir ciclo</p>
+      <p class="panel-hint">Arquiva as metas, táticas e semanas deste ciclo no Histórico, e libera o quadro pra um ciclo novo. Áreas, visão, L3 e blocos de tempo continuam do jeito que estão — eles não são por ciclo.</p>
+      <button class="conclude-btn" id="concludeCycleBtn">Concluir ciclo e começar um novo</button>
+    </div>
+  </div>
+
+  <!-- HISTÓRICO -->
+  <div class="tab-panel" id="tab-historico">
+    <p class="panel-title">Histórico de ciclos</p>
+    <p class="panel-hint">Cada ciclo concluído fica arquivado aqui — nome, datas, execução final e o resultado de cada meta.</p>
+    <div id="historicoList"></div>
+  </div>
+
+  <!-- TEMPO -->
+  <div class="tab-panel" id="tab-tempo">
+    <div class="sub-block">
+      <p class="panel-title">Blocos de tempo</p>
+      <p class="panel-hint">Estratégico (3h/semana, pra trabalhar nas táticas do plano), de reserva (30-60min, 1-2x/dia, pra e-mail e administrativo) e de fuga (3h/semana, pra desconectar de verdade). Isso é o seu modelo de semana — não é medido aqui; o que mede se você seguiu ele é o checklist na aba "Plano da Semana".</p>
+      <div id="blocksList"></div>
+      <button class="add-btn" id="addBlockBtn">+ adicionar bloco</button>
+    </div>
+    <div class="sub-block">
+      <p class="panel-title">Responsabilidade — sua RSR</p>
+      <p class="panel-hint">Reunião Semanal de Responsabilidade: 2 a 4 pessoas, 15-30min, toda semana. Cada um compartilha seu placar de execução e as intenções pra próxima semana. Estes dois campos são só o registro de quem/quando — se você participou de fato, isso é marcado semana a semana no "Plano da Semana".</p>
+      <div class="team-grid">
+        <div class="field-block"><label>quem está no grupo</label><input type="text" id="rsrMembers" placeholder="nomes"></div>
+        <div class="field-block"><label>quando</label><input type="text" id="rsrWhen" placeholder="ex: segundas, 8h"></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="save-status" id="saveStatus">salvo</div>
+<input type="file" id="coverFileInput" accept="image/*" style="display:none;">
+
+<script>
+const STORAGE_KEY = 'ano-12-semanas-v1';
+
+const areaColors = ['#C1554A','#4C9A6E','#D6A63A','#D98A3D','#3E8E86','#5C7EA8','#8E6BA8'];
+
+const defaultAreas = [
+  { name:'Saúde', score:6,
+    vision:['75kg.','10-12% de gordura corporal.','Físico atlético e proporcional.','Sem refluxo.','Tenho disposição para trabalhar, treinar e aproveitar a noite com minha família.'],
+    l3:['72-73kg.','12-14% de gordura corporal.','Físico atlético e proporcional.','Refluxo raro e controlado.','Tenho disposição para trabalhar, treinar e aproveitar a noite sem me sentir esgotado.'] },
+  { name:'Sono', score:6,
+    vision:['Consigo desligar a mente ao final do dia.','Acordo descansado e disposto.','Tenho um sono profundo e reparador.'],
+    l3:['Consigo desligar do trabalho na maior parte dos dias.','Acordo descansado na maioria das manhãs.','Durmo bem na maior parte da semana.'] },
+  { name:'Saúde Emocional', score:6,
+    vision:['Me sinto com a sensação de estar seguro, grande parte do tempo.','Consigo dizer "não" sem culpa.','Não mudo minhas decisões apenas para evitar desagradar alguém.','Confio no meu julgamento mesmo quando não tenho certeza do resultado.','Não passo dias pensando em críticas ou conflitos.'],
+    l3:['Consigo dizer "não" sem culpa.','Não mudo minhas decisões apenas para evitar desagradar alguém.','Confio no meu julgamento mesmo quando não tenho certeza do resultado.','Não passo dias pensando em críticas ou conflitos.'] },
+  { name:'Empresa e Trabalho', score:6,
+    vision:['Trabalho 5-6 horas por dia.','Minha empresa me gera R$100.000 líquidos por mês.','Tenho uma sede física própria.','Tenho uma equipe de 4-5 colaboradores fixos.','Todas as entregas são realizadas no prazo e temos poucas urgências.','Recebo contatos de empresários interessados todos os dias vindos do YouTube.','Tenho clientes que renovam contratos e indicam minha empresa.','Meu faturamento continua estável mesmo quando alguns clientes saem.','Minha equipe resolve os problemas operacionais sem minha intervenção.','Consigo tirar 7-10 dias de férias de 3 em 3 meses sem a empresa parar.'],
+    l3:['Trabalho 6-7 horas por dia.','Minha empresa me gera R$30.000 líquidos por mês.','Tenho 1-2 colaboradores fixos.','Recebo contatos de empresários interessados semanalmente pelo YouTube.','Clientes renovam contratos e indicam minha empresa.','Consigo me ausentar por 3-5 dias sem comprometer meu trabalho.','Meu faturamento continua saudável mesmo quando um cliente sai.'] },
+  { name:'Casamento e Família', score:6,
+    vision:['Sou casado com Maria Luiza.','Temos 2 filhos.','Temos 1 cachorro.','Moramos em uma casa própria.','Fazemos 4 viagens grandes por ano (2 nacionais e 2 internacionais).','Conversamos sobre problemas sem gritar ou nos afastarmos.','Fazemos planos para o futuro juntos.','Existe admiração mútua entre nós.'],
+    l3:['Estou em um relacionamento saudável com Maria Luiza.','Fazemos 1 micro viagem a cada 2 meses (caldas, cachoeiras, chalés).','Fazemos 1-2 viagens nacionais maiores por ano (praias, cidades turísticas).','Estamos construindo uma reserva para o casamento e futura casa.','Fazemos planos para o futuro juntos.','Conversamos sobre problemas sem nos afastarmos.','Existe admiração mútua entre nós.'] },
+  { name:'Família, Amigos e Vida Pessoal', score:6,
+    vision:['Estou presente na vida da minha mãe, irmão e avó.','Tenho amigos com quem posso contar nos momentos difíceis e compartilho momentos importantes.','Tenho tempo para ler, treinar e ficar sozinho quando desejo.'],
+    l3:['Estou presente na vida da minha mãe, irmão e avó.','Tenho amigos com quem posso contar nos momentos difíceis.','Compartilho momentos importantes com amigos próximos.','Tenho tempo para ler, treinar e ficar sozinho durante a semana.'] },
+  { name:'Desenvolvimento e Conquistas', score:6,
+    vision:['Sou fluente em inglês.','Sou faixa preta de Jiu-Jitsu.','Tenho um canal no YouTube com 100 mil inscritos.','Faço palestras sobre Google Ads, Vendas e Marketing para centenas de profissionais da área e empresários.','Sou reconhecido como referência na minha área.','Tenho uma mentoria onde ajudo outras pessoas a percorrerem o caminho que já percorri.'],
+    l3:['Consigo conversar em inglês sem dificuldades.','Sou faixa azul ou roxa de Jiu-Jitsu.','Tenho um canal no YouTube com 10-20 mil inscritos.','Sou convidado para participar de podcasts e eventos.','Tenho meus primeiros mentorados.','Recebo mensagens de pessoas que aplicaram meus ensinamentos e tiveram resultados.'] },
+];
+
+const defaultTabOrder = ['visao','l3','ciclo','metas','semana','placar','historico','tempo'];
+const tabLabels = { ciclo:'Ciclo', visao:'Visão de Vida', l3:'L3 (3 anos)', metas:'Metas de 12 Semanas', semana:'Plano da Semana', placar:'Placar', historico:'Histórico', tempo:'Tempo & Equipe' };
+
+let state = {
+  cycleName: 'A Virada',
+  cycleStart: new Date().toISOString().slice(0,10),
+  tabOrder: [...defaultTabOrder],
+  areas: JSON.parse(JSON.stringify(defaultAreas)),
+  metas: [],
+  taticas: [],
+  weeks: Array.from({length:12}, () => ({ prog:{}, lag:{}, routine:{avaliei:false, planejei:false, rsr:false, blocos:false}, notes:{wentWell:'', stuck:'', adjust:''} })),
+  blocks: [
+    { label:'Bloco Estratégico', day:'segunda', start:'08:00', duration:'3h' },
+    { label:'Bloco de Reserva', day:'todo dia', start:'11:00', duration:'30min' },
+    { label:'Bloco de Fuga', day:'quinta', start:'14:00', duration:'3h' },
+  ],
+  rsrMembers: '',
+  rsrWhen: '',
+  visaoCover: { src:'', posY:50 },
+  l3Cover: { src:'', posY:50 },
+  cycleHistory: []
+};
+let selectedWeek = 0;
+let activeTabId = null;
+
+let saveTimer = null;
+function scheduleSave(){ clearTimeout(saveTimer); saveTimer = setTimeout(saveState, 500); }
+async function saveState(){
+  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); flashSaved(); }
+  catch(e){ console.error('save failed', e); }
+}
+function flashSaved(){
+  const el = document.getElementById('saveStatus');
+  el.classList.add('show'); setTimeout(()=>el.classList.remove('show'), 1200);
+}
+function migrateState(parsed){
+  if(parsed && Array.isArray(parsed.areas) && parsed.areas.length) state = parsed;
+  if(!Array.isArray(state.weeks) || state.weeks.length !== 12){
+    state.weeks = Array.from({length:12}, () => ({ prog:{}, lag:{}, routine:{avaliei:false,planejei:false,rsr:false,blocos:false}, notes:{wentWell:'',stuck:'',adjust:''} }));
+  }
+  state.weeks.forEach(w=>{
+    if(!w.routine) w.routine={avaliei:false,planejei:false,rsr:false,blocos:false};
+    if(typeof w.routine.blocos !== 'boolean') w.routine.blocos = false;
+    if(!w.notes) w.notes={wentWell:'',stuck:'',adjust:''};
+    if(!w.lag) w.lag={}; if(!w.prog) w.prog={};
+  });
+  if(!Array.isArray(state.blocks)) state.blocks = [];
+  if(typeof state.rsrMembers !== 'string') state.rsrMembers = '';
+  if(typeof state.rsrWhen !== 'string') state.rsrWhen = '';
+  if(!Array.isArray(state.tabOrder)){
+    state.tabOrder = [...defaultTabOrder];
+  } else {
+    defaultTabOrder.forEach(id=>{ if(!state.tabOrder.includes(id)) state.tabOrder.push(id); });
+    state.tabOrder = state.tabOrder.filter(id=> defaultTabOrder.includes(id));
+  }
+  if(!Array.isArray(state.cycleHistory)) state.cycleHistory = [];
+  state.cycleHistory.forEach(c=>{
+    if(!c.id) c.id = uid('h');
+    if(!Array.isArray(c.metas)) c.metas = [];
+    if(!Array.isArray(c.taticas)) c.taticas = [];
+    if(!Array.isArray(c.weeks)) c.weeks = [];
+  });
+  state.areas.forEach(a=>{
+    if(typeof a.vision === 'string') a.vision = a.vision.split(/\n+/).map(s=>s.trim()).filter(Boolean);
+    if(!Array.isArray(a.vision)) a.vision = [];
+    if(typeof a.l3 === 'string') a.l3 = a.l3.split(/\n+/).map(s=>s.trim()).filter(Boolean);
+    if(!Array.isArray(a.l3)) a.l3 = [];
+    delete a.cover;
+  });
+  if(!state.visaoCover || typeof state.visaoCover !== 'object') state.visaoCover = { src:'', posY:50 };
+  if(!state.l3Cover || typeof state.l3Cover !== 'object') state.l3Cover = { src:'', posY:50 };
+  if(typeof state.visaoCover.posY !== 'number') state.visaoCover.posY = 50;
+  if(typeof state.l3Cover.posY !== 'number') state.l3Cover.posY = 50;
+}
+
+async function loadState(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(raw){
+      migrateState(JSON.parse(raw));
+    }
+  }catch(e){ /* defaults stand */ }
+  renderAll();
+}
+
+/* ---------- EXPORT / IMPORT (backup between devices) ---------- */
+function exportState(){
+  const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const today = new Date().toISOString().slice(0,10);
+  a.href = url;
+  a.download = `ano-em-12-semanas-backup-${today}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+document.getElementById('exportBtn').addEventListener('click', exportState);
+document.getElementById('importBtn').addEventListener('click', ()=>{
+  document.getElementById('importFileInput').click();
+});
+document.getElementById('importFileInput').addEventListener('change', e=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  if(!confirm('Importar vai substituir todos os dados atuais deste dispositivo pelos dados do arquivo. Continuar?')){
+    e.target.value = '';
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = ev=>{
+    try{
+      const parsed = JSON.parse(ev.target.result);
+      migrateState(parsed);
+      renderAll();
+      scheduleSave();
+      flashSaved();
+    }catch(err){
+      alert('Não consegui ler esse arquivo. Confira se é um backup exportado por esta ferramenta.');
+    }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+});
+
+function escapeHtml(str){ const d = document.createElement('div'); d.textContent = str || ''; return d.innerHTML; }
+function addDays(dateStr, days){ const d = new Date(dateStr + 'T00:00:00'); d.setDate(d.getDate()+days); return d.toISOString().slice(0,10); }
+function uid(prefix){ return prefix + Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+
+/* ---------- TABS (draggable order) ---------- */
+function renderNav(){
+  const nav = document.getElementById('tabNav');
+  if(!activeTabId) activeTabId = state.tabOrder[0];
+  nav.innerHTML = '';
+  state.tabOrder.forEach(id=>{
+    const btn = document.createElement('button');
+    btn.dataset.tab = id;
+    btn.draggable = true;
+    btn.textContent = tabLabels[id] || id;
+    if(id === activeTabId) btn.classList.add('active');
+    btn.addEventListener('click', ()=>{
+      activeTabId = id;
+      document.querySelectorAll('nav.tabs button').forEach(b=>b.classList.remove('active'));
+      document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('tab-'+id).classList.add('active');
+    });
+    btn.addEventListener('dragstart', e=>{ btn.classList.add('dragging'); e.dataTransfer.setData('text/plain', id); });
+    btn.addEventListener('dragend', ()=>{ btn.classList.remove('dragging'); nav.querySelectorAll('button').forEach(b=>b.classList.remove('drag-over')); });
+    btn.addEventListener('dragover', e=>{ e.preventDefault(); btn.classList.add('drag-over'); });
+    btn.addEventListener('dragleave', ()=>{ btn.classList.remove('drag-over'); });
+    btn.addEventListener('drop', e=>{
+      e.preventDefault();
+      const draggedId = e.dataTransfer.getData('text/plain');
+      if(draggedId === id) return;
+      const from = state.tabOrder.indexOf(draggedId);
+      const to = state.tabOrder.indexOf(id);
+      state.tabOrder.splice(from,1);
+      state.tabOrder.splice(to,0,draggedId);
+      renderNav();
+      scheduleSave();
+    });
+    nav.appendChild(btn);
+  });
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  const activePanel = document.getElementById('tab-'+activeTabId);
+  if(activePanel) activePanel.classList.add('active');
+}
+
+/* ---------- CYCLE HEADER ---------- */
+function renderCycle(){
+  document.getElementById('cycleName').value = state.cycleName;
+  document.getElementById('cycleStart').value = state.cycleStart;
+  document.getElementById('cycleEnd').value = addDays(state.cycleStart, 83);
+}
+document.getElementById('cycleName').addEventListener('input', e=>{ state.cycleName = e.target.value; scheduleSave(); });
+document.getElementById('cycleStart').addEventListener('change', e=>{ state.cycleStart = e.target.value; renderCycle(); scheduleSave(); });
+
+/* ---------- CICLO: hero + colored area bars ---------- */
+function renderHero(){
+  const scores = state.areas.map(a=>a.score);
+  const avg = scores.length ? (scores.reduce((a,b)=>a+b,0)/scores.length) : 0;
+  document.getElementById('heroBarFill').style.width = (avg*10) + '%';
+  document.getElementById('heroNum').textContent = avg.toFixed(1) + '/10 em média';
+}
+
+function renderAreaBars(){
+  const list = document.getElementById('areaBars'); list.innerHTML = '';
+  state.areas.forEach((area,i)=>{
+    const color = areaColors[i % areaColors.length];
+    const row = document.createElement('div'); row.className = 'area-row';
+    row.innerHTML = `
+      <div class="area-row-name-wrap">
+        <input class="area-row-name" value="${escapeHtml(area.name)}" data-field="name" data-idx="${i}" style="width:${area.nameWidth || 150}px;">
+        <span class="area-row-name-handle" data-idx="${i}"></span>
+      </div>
+      <div class="area-row-bar">
+        <div class="area-row-track"><div class="area-row-fill" id="fill-${i}" style="width:${area.score*10}%;background:${color};"></div></div>
+        <input type="range" class="area-row-range" min="0" max="10" step="1" value="${area.score}" data-field="score" data-idx="${i}">
+      </div>
+      <span class="area-row-score">${area.score}/10</span>
+      <button class="area-row-x" data-idx="${i}" title="remover área">✕</button>
+    `;
+    list.appendChild(row);
+  });
+  list.querySelectorAll('[data-field]').forEach(el=>el.addEventListener('input', onAreaFieldChange));
+  list.querySelectorAll('.area-row-x').forEach(btn=>btn.addEventListener('click', ()=> removeArea(parseInt(btn.dataset.idx))));
+  list.querySelectorAll('.area-row-name-handle').forEach(handle=>{
+    const idx = parseInt(handle.dataset.idx);
+    const input = handle.previousElementSibling;
+    let startX = 0, startW = 0;
+    function onMove(e){
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const w = Math.max(70, Math.min(320, startW + (clientX - startX)));
+      input.style.width = w + 'px';
+    }
+    function onEnd(){
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onEnd);
+      document.removeEventListener('touchmove', onMove);
+      document.removeEventListener('touchend', onEnd);
+      const w = parseInt(input.style.width);
+      if(state.areas[idx]){ state.areas[idx].nameWidth = w; scheduleSave(); }
+    }
+    function onStart(e){
+      e.preventDefault();
+      startX = e.touches ? e.touches[0].clientX : e.clientX;
+      startW = input.getBoundingClientRect().width;
+      document.addEventListener('mousemove', onMove);
+      document.addEventListener('mouseup', onEnd);
+      document.addEventListener('touchmove', onMove, {passive:false});
+      document.addEventListener('touchend', onEnd);
+    }
+    handle.addEventListener('mousedown', onStart);
+    handle.addEventListener('touchstart', onStart, {passive:false});
+  });
+}
+function onAreaFieldChange(e){
+  const idx = parseInt(e.target.dataset.idx), field = e.target.dataset.field;
+  let val = e.target.value; if(field==='score') val = parseInt(val);
+  state.areas[idx][field] = val;
+  if(field==='score'){
+    const row = e.target.closest('.area-row');
+    row.querySelector('.area-row-score').textContent = val + '/10';
+    row.querySelector('.area-row-fill').style.width = (val*10) + '%';
+    renderHero();
+  }
+  if(field==='name'){
+    document.querySelectorAll(`[data-field="name"][data-idx="${idx}"]`).forEach(el=>{
+      if(el !== e.target) el.value = val;
+    });
+  }
+  populateAreaSelects();
+  scheduleSave();
+}
+document.getElementById('addAreaBtn').addEventListener('click', ()=>{
+  state.areas.push({ name:'Nova área', score:5, vision:[], l3:[] });
+  renderAll(); scheduleSave();
+});
+
+function removeArea(idx){
+  if(state.areas.length <= 3){ alert('mantenha ao menos 3 áreas'); return; }
+  state.areas.splice(idx,1);
+  renderAll();
+  scheduleSave();
+}
+
+let pendingCoverKey = null;
+let repositioningKey = null;
+function readAndCompressImage(file, maxW, cb){
+  const reader = new FileReader();
+  reader.onload = function(ev){
+    const img = new Image();
+    img.onload = function(){
+      let w = img.width, h = img.height;
+      if(w > maxW){ h = Math.round(h * (maxW/w)); w = maxW; }
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      cb(canvas.toDataURL('image/jpeg', 0.78));
+    };
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+/* ---------- COVER BANNER (one per tab: Visão and L3) ---------- */
+function renderCoverBanner(containerId, coverKey){
+  const el = document.getElementById(containerId);
+  const cover = state[coverKey];
+  if(!cover || !cover.src){
+    el.innerHTML = `<button class="cover-placeholder" data-key="${coverKey}" data-action="add">+ adicionar capa</button>`;
+  } else {
+    const showSlider = repositioningKey === coverKey;
+    el.innerHTML = `<div class="cover-wrap">
+      <img class="cover-img" src="${cover.src}" style="object-position:center ${cover.posY}%;">
+      <div class="cover-actions">
+        <button class="cover-btn" data-key="${coverKey}" data-action="reposition">reposicionar</button>
+        <button class="cover-btn" data-key="${coverKey}" data-action="change">trocar</button>
+        <button class="cover-btn" data-key="${coverKey}" data-action="remove">remover</button>
+      </div>
+      ${showSlider ? `<div class="cover-reposition-bar">
+        <input type="range" min="0" max="100" value="${cover.posY}" data-key="${coverKey}" class="cover-reposition-range">
+        <button data-key="${coverKey}" data-action="done">pronto</button>
+      </div>` : ''}
+    </div>`;
+  }
+  el.querySelectorAll('[data-action]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const key = btn.dataset.key, action = btn.dataset.action;
+      if(action === 'add' || action === 'change'){
+        pendingCoverKey = key;
+        document.getElementById('coverFileInput').click();
+      } else if(action === 'remove'){
+        state[key] = { src:'', posY:50 };
+        repositioningKey = null;
+        renderCoverBanner(containerId, key);
+        scheduleSave();
+      } else if(action === 'reposition'){
+        repositioningKey = key;
+        renderCoverBanner(containerId, key);
+      } else if(action === 'done'){
+        repositioningKey = null;
+        renderCoverBanner(containerId, key);
+        scheduleSave();
+      }
+    });
+  });
+  const rangeInput = el.querySelector('.cover-reposition-range');
+  if(rangeInput){
+    rangeInput.addEventListener('input', e=>{
+      const key = e.target.dataset.key;
+      state[key].posY = parseInt(e.target.value);
+      el.querySelector('.cover-img').style.objectPosition = `center ${state[key].posY}%`;
+    });
+  }
+}
+document.getElementById('coverFileInput').addEventListener('change', e=>{
+  const file = e.target.files[0];
+  if(!file || !pendingCoverKey) return;
+  const key = pendingCoverKey;
+  readAndCompressImage(file, 1400, dataUrl=>{
+    state[key] = { src: dataUrl, posY: 50 };
+    renderCoverBanner(key === 'visaoCover' ? 'visaoCoverContainer' : 'l3CoverContainer', key);
+    scheduleSave();
+  });
+  e.target.value = '';
+});
+
+/* ---------- VISÃO DE VIDA / L3 (bullet lists) ---------- */
+function renderBulletList(containerId, field){
+  const list = document.getElementById(containerId); list.innerHTML = '';
+  state.areas.forEach((area,ai)=>{
+    const items = area[field] || [];
+    const block = document.createElement('div'); block.className = 'bullet-block';
+    let rowsHtml = '';
+    items.forEach((text,bi)=>{
+      rowsHtml += `<div class="bullet-row">
+        <span class="bullet-dot">•</span>
+        <input type="text" value="${escapeHtml(text)}" data-ai="${ai}" data-bi="${bi}">
+        <button class="bullet-del" data-ai="${ai}" data-bi="${bi}">✕</button>
+      </div>`;
+    });
+    block.innerHTML = `
+      <input type="text" class="bullet-heading" data-field="name" data-idx="${ai}" value="${escapeHtml(area.name)}">
+      ${rowsHtml}
+      <button class="bullet-add" data-ai="${ai}">+ item</button>
+      <div><button class="bullet-remove-area" data-idx="${ai}">remover área</button></div>`;
+    list.appendChild(block);
+  });
+  list.querySelectorAll('input.bullet-heading').forEach(el=>el.addEventListener('input', onAreaFieldChange));
+  list.querySelectorAll('input[type=text]:not(.bullet-heading)').forEach(inp=>{
+    inp.addEventListener('input', e=>{
+      const ai = parseInt(e.target.dataset.ai), bi = parseInt(e.target.dataset.bi);
+      state.areas[ai][field][bi] = e.target.value;
+      scheduleSave();
+    });
+  });
+  list.querySelectorAll('.bullet-del').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const ai = parseInt(btn.dataset.ai), bi = parseInt(btn.dataset.bi);
+      state.areas[ai][field].splice(bi,1);
+      renderBulletList(containerId, field);
+      scheduleSave();
+    });
+  });
+  list.querySelectorAll('.bullet-add').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const ai = parseInt(btn.dataset.ai);
+      state.areas[ai][field].push('');
+      renderBulletList(containerId, field);
+      scheduleSave();
+      const inputs = document.getElementById(containerId).querySelectorAll(`input[data-ai="${ai}"]`);
+      if(inputs.length) inputs[inputs.length-1].focus();
+    });
+  });
+  list.querySelectorAll('.bullet-remove-area').forEach(btn=>{
+    btn.addEventListener('click', ()=> removeArea(parseInt(btn.dataset.idx)));
+  });
+}
+function renderVisaoBulletsList(){ renderBulletList('visaoBulletsList','vision'); }
+function renderL3BulletsList(){ renderBulletList('l3BulletsList','l3'); }
+
+/* ---------- METAS & TÁTICAS ---------- */
+function areaOptions(selected){
+  return state.areas.map(a=>`<option value="${escapeHtml(a.name)}" ${a.name===selected?'selected':''}>${escapeHtml(a.name)}</option>`).join('');
+}
+function weekOptions(selected){
+  let out = '';
+  for(let w=1;w<=12;w++) out += `<option value="${w}" ${w===selected?'selected':''}>Semana ${w}</option>`;
+  return out;
+}
+function populateAreaSelects(){ renderMetasList(); }
+
+function renderMetasList(){
+  const list = document.getElementById('metasList'); list.innerHTML = '';
+  if(state.metas.length === 0) list.innerHTML = '<p class="empty-note">nenhuma meta ainda — adicione a primeira (recomendado: 1 a 3).</p>';
+  state.metas.forEach((m, mi)=>{
+    const taticas = state.taticas.filter(t=>t.metaId === m.id);
+    const card = document.createElement('div'); card.className = 'meta-card';
+    let taticasHtml = '';
+    taticas.forEach(t=>{
+      taticasHtml += `<div class="tatica-row">
+        <input type="text" value="${escapeHtml(t.text)}" data-tid="${t.id}" data-field="text" placeholder="ação, começando com um verbo">
+        <select data-tid="${t.id}" data-field="type">
+          <option value="recorrente" ${t.type==='recorrente'?'selected':''}>tarefa recorrente</option>
+          <option value="unica" ${t.type==='unica'?'selected':''}>estratégia (1 vez)</option>
+        </select>
+        ${t.type==='recorrente'
+          ? `<input type="number" min="1" max="30" value="${t.target}" data-tid="${t.id}" data-field="target" title="vezes/semana">`
+          : `<select data-tid="${t.id}" data-field="week">${weekOptions(t.week)}</select>`}
+        <button class="del-x" data-tid="${t.id}" data-action="del-tatica">✕</button>
+      </div>`;
+    });
+    card.innerHTML = `
+      <div class="meta-top">
+        <textarea data-mid="${m.id}" data-field="text" placeholder="meta específica e mensurável">${escapeHtml(m.text)}</textarea>
+        <select data-mid="${m.id}" data-field="area">${areaOptions(m.area)}</select>
+      </div>
+      <div class="lag-row">
+        <input type="text" value="${escapeHtml(m.lagName||'')}" data-mid="${m.id}" data-field="lagName" placeholder="indicador de atraso (ex: peso, faturamento)">
+        <input type="text" value="${escapeHtml(m.lagUnit||'')}" data-mid="${m.id}" data-field="lagUnit" placeholder="unidade">
+        <input type="number" step="any" value="${m.lagTarget!==undefined && m.lagTarget!==null ? m.lagTarget : ''}" data-mid="${m.id}" data-field="lagTarget" placeholder="valor final desejado">
+      </div>
+      <p class="lag-target-hint">Coloque o valor final que você quer atingir, não a diferença. Ex: se está em 80 e quer chegar em 75, coloque 75 — não 5.</p>
+      <div class="tatica-list">${taticasHtml || '<p class="empty-note" style="padding:6px 0;">nenhuma tática ainda</p>'}</div>
+      <div class="meta-actions">
+        <button class="add-btn" data-action="add-tatica" data-mid="${m.id}">+ tática</button>
+        <button class="remove-link" data-action="del-meta" data-mid="${m.id}">remover meta</button>
+      </div>`;
+    list.appendChild(card);
+  });
+
+  list.querySelectorAll('[data-mid][data-field]').forEach(el=>{
+    el.addEventListener('input', e=>{
+      const mid = e.target.dataset.mid, field = e.target.dataset.field;
+      const meta = state.metas.find(x=>x.id===mid);
+      let val = e.target.value;
+      if(field==='lagTarget') val = val === '' ? '' : parseFloat(val);
+      meta[field] = val;
+      if(field==='area'){ renderWeekPanel(); renderLagTable(); }
+      if(field==='lagName' || field==='lagUnit' || field==='lagTarget'){ renderLagTable(); }
+      scheduleSave();
+    });
+  });
+  list.querySelectorAll('[data-tid][data-field]').forEach(el=>{
+    el.addEventListener('input', e=>{
+      const tid = e.target.dataset.tid, field = e.target.dataset.field;
+      const t = state.taticas.find(x=>x.id===tid);
+      let val = e.target.value;
+      if(field==='target') val = Math.max(1, parseInt(val)||1);
+      if(field==='week') val = parseInt(val);
+      t[field] = val;
+      if(field==='type'){ renderMetasList(); }
+      renderWeekPanel(); renderWeekPills();
+      scheduleSave();
+    });
+  });
+  list.querySelectorAll('[data-action="add-tatica"]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      state.taticas.push({ id: uid('t'), metaId: btn.dataset.mid, text:'', type:'recorrente', target:3, week:1 });
+      renderMetasList(); renderWeekPanel(); renderWeekPills(); scheduleSave();
+    });
+  });
+  list.querySelectorAll('[data-action="del-tatica"]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const tid = btn.dataset.tid;
+      state.taticas = state.taticas.filter(t=>t.id!==tid);
+      state.weeks.forEach(w=>{ delete w.prog[tid]; });
+      renderMetasList(); renderWeekPanel(); renderWeekPills(); scheduleSave();
+    });
+  });
+  list.querySelectorAll('[data-action="del-meta"]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const mid = btn.dataset.mid;
+      const removedTaticaIds = state.taticas.filter(t=>t.metaId===mid).map(t=>t.id);
+      state.taticas = state.taticas.filter(t=>t.metaId!==mid);
+      state.metas = state.metas.filter(m=>m.id!==mid);
+      state.weeks.forEach(w=>{ removedTaticaIds.forEach(tid=>delete w.prog[tid]); delete w.lag[mid]; });
+      renderMetasList(); renderWeekPanel(); renderWeekPills(); renderLagTable(); scheduleSave();
+    });
+  });
+}
+document.getElementById('addMetaBtn').addEventListener('click', ()=>{
+  state.metas.push({ id: uid('m'), text:'', area: state.areas[0]?state.areas[0].name:'', lagName:'', lagUnit:'', lagTarget:'' });
+  renderMetasList(); renderLagTable(); scheduleSave();
+});
+
+/* ---------- SEMANA (plano derivado + placar) ---------- */
+function activeTaticasForWeek(weekIdx, taticasList){
+  taticasList = taticasList || state.taticas;
+  const wn = weekIdx+1;
+  return taticasList.filter(t => t.type==='recorrente' || (t.type==='unica' && t.week===wn));
+}
+function weekPct(weekIdx, taticasList, weeksList){
+  taticasList = taticasList || state.taticas;
+  weeksList = weeksList || state.weeks;
+  const active = activeTaticasForWeek(weekIdx, taticasList);
+  if(active.length === 0) return null;
+  const w = weeksList[weekIdx];
+  let doneSum=0, targetSum=0;
+  active.forEach(t=>{
+    const target = t.type==='recorrente' ? t.target : 1;
+    const raw = w.prog[t.id];
+    const done = t.type==='recorrente' ? Math.min(raw||0, target) : (raw ? 1 : 0);
+    doneSum += done; targetSum += target;
+  });
+  if(targetSum===0) return null;
+  return Math.round((doneSum/targetSum)*100);
+}
+function renderWeekPills(){
+  const wrap = document.getElementById('weekPills'); wrap.innerHTML='';
+  for(let i=0;i<12;i++){
+    const pct = weekPct(i);
+    const pill = document.createElement('div');
+    pill.className = 'week-pill' + (i===selectedWeek?' selected':'') + (pct!==null?' has-data':'');
+    pill.innerHTML = `<span class="wn">S${i+1}</span><span class="wp">${pct!==null?pct+'%':'—'}</span>`;
+    pill.addEventListener('click', ()=>{ selectedWeek = i; renderWeekPills(); renderWeekPanel(); });
+    wrap.appendChild(pill);
+  }
+}
+function metaNameFor(id){ const m = state.metas.find(x=>x.id===id); return m ? m.text || '(meta sem nome)' : ''; }
+
+function renderWeekPanel(){
+  const panel = document.getElementById('weekPanel');
+  const w = state.weeks[selectedWeek];
+  const start = addDays(state.cycleStart, selectedWeek*7);
+  const end = addDays(start, 6);
+  const active = activeTaticasForWeek(selectedWeek);
+
+  let bodyHtml = '';
+  if(state.metas.length === 0){
+    bodyHtml = `<p class="empty-note">Cadastre metas e táticas na aba "Metas de 12 Semanas" pra começar.</p>`;
+  } else if(active.length === 0){
+    bodyHtml = `<p class="empty-note">Nenhuma tática ativa nesta semana. Táticas recorrentes aparecem toda semana; táticas de uma vez só na semana marcada.</p>`;
+  } else {
+    active.forEach(t=>{
+      const target = t.type==='recorrente' ? t.target : 1;
+      const raw = w.prog[t.id];
+      if(t.type==='recorrente'){
+        const done = Math.min(raw||0, target);
+        const rowPct = Math.round((done/target)*100);
+        bodyHtml += `<div class="plan-row">
+          <div class="plan-name">${escapeHtml(t.text||'(sem nome)')} <span class="meta-note">meta: ${escapeHtml(metaNameFor(t.metaId))} — ${target}x/sem</span>
+            <div class="mini-track"><div class="mini-fill" style="width:${rowPct}%"></div></div>
+          </div>
+          <input type="number" min="0" max="${target*2}" value="${raw||0}" data-tid="${t.id}">
+          <span style="font-size:0.8rem;color:var(--muted);text-align:right;">${raw||0}/${target}</span>
+        </div>`;
+      } else {
+        const checked = raw ? 'checked' : '';
+        bodyHtml += `<div class="plan-row">
+          <div class="plan-name">${escapeHtml(t.text||'(sem nome)')} <span class="meta-note">meta: ${escapeHtml(metaNameFor(t.metaId))} — ação única</span></div>
+          <input type="checkbox" data-tid="${t.id}" ${checked}>
+          <span style="font-size:0.8rem;color:var(--muted);text-align:right;">${raw?'feito':'pendente'}</span>
+        </div>`;
+      }
+    });
+  }
+
+  const pct = weekPct(selectedWeek);
+  panel.innerHTML = `
+    <p class="week-panel-title">Semana ${selectedWeek+1} <span style="color:var(--muted);font-weight:400;font-size:0.85rem;">(${start} a ${end})</span></p>
+    <div class="week-pct-line"><span class="week-pct-num">${pct!==null?pct:0}%</span><span style="color:var(--muted);font-size:0.85rem;">de execução — 85%+ é o alvo do livro</span></div>
+    ${bodyHtml}
+    <div class="routine-check">
+      <label><input type="checkbox" data-routine="avaliei" ${w.routine.avaliei?'checked':''}> avaliei minha semana</label>
+      <label><input type="checkbox" data-routine="planejei" ${w.routine.planejei?'checked':''}> planejei a próxima</label>
+      <label><input type="checkbox" data-routine="rsr" ${w.routine.rsr?'checked':''}> participei da RSR</label>
+      <label><input type="checkbox" data-routine="blocos" ${w.routine.blocos?'checked':''}> segui meus blocos de tempo</label>
+    </div>
+    <div class="review-grid">
+      <div class="review-field"><label>o que deu certo</label><textarea data-field="wentWell">${escapeHtml(w.notes.wentWell)}</textarea></div>
+      <div class="review-field"><label>o que travou</label><textarea data-field="stuck">${escapeHtml(w.notes.stuck)}</textarea></div>
+      <div class="review-field"><label>ajuste pra próxima semana</label><textarea data-field="adjust">${escapeHtml(w.notes.adjust)}</textarea></div>
+    </div>`;
+
+  panel.querySelectorAll('input[type=number][data-tid]').forEach(inp=>{
+    inp.addEventListener('input', e=>{
+      w.prog[e.target.dataset.tid] = Math.max(0, parseInt(e.target.value)||0);
+      renderWeekPanel(); renderWeekPills(); renderCycleProgress();
+      scheduleSave();
+    });
+  });
+  panel.querySelectorAll('input[type=checkbox][data-tid]').forEach(chk=>{
+    chk.addEventListener('change', e=>{
+      w.prog[e.target.dataset.tid] = e.target.checked;
+      renderWeekPanel(); renderWeekPills(); renderCycleProgress();
+      scheduleSave();
+    });
+  });
+  panel.querySelectorAll('input[data-routine]').forEach(chk=>{
+    chk.addEventListener('change', e=>{
+      w.routine[e.target.dataset.routine] = e.target.checked;
+      scheduleSave();
+    });
+  });
+  panel.querySelectorAll('.review-field textarea').forEach(ta=>{
+    ta.addEventListener('input', e=>{
+      w.notes[e.target.dataset.field] = e.target.value;
+      scheduleSave();
+    });
+  });
+}
+
+/* ---------- PLACAR ---------- */
+function renderCycleProgress(){
+  const pcts = state.weeks.map((_,i)=>weekPct(i)).filter(p=>p!==null);
+  const avg = pcts.length ? Math.round(pcts.reduce((a,b)=>a+b,0)/pcts.length) : 0;
+  document.getElementById('cycleProgressNum').textContent = avg + '%';
+  document.getElementById('cycleProgressNum').style.color = avg>=85 ? 'var(--teal)' : (avg>=60 ? 'var(--gold)' : 'var(--alert)');
+  const fill = document.getElementById('cycleProgressFill');
+  fill.style.width = avg + '%';
+  fill.style.background = avg>=85 ? 'var(--teal)' : (avg>=60 ? 'var(--gold)' : 'var(--alert)');
+  const status = document.getElementById('cycleStatusLine');
+  if(pcts.length === 0){ status.textContent = 'ainda sem semanas registradas.'; }
+  else if(avg>=85){ status.textContent = 'nesse ritmo, é bem provável que você bata suas metas de 12 semanas.'; }
+  else if(avg>=60){ status.textContent = 'progresso real, mas abaixo dos 85% — vale olhar o que está travando.'; }
+  else { status.textContent = 'abaixo de 60% é sinal de alerta — pode ser hora de ajustar o plano ou pedir ajuda no seu grupo.'; }
+  renderLagTable();
+}
+
+function lagProgressInfo(meta, weeksList){
+  weeksList = weeksList || state.weeks;
+  const vals = [];
+  for(let w=0; w<12; w++){
+    const v = weeksList[w].lag[meta.id];
+    if(v !== undefined && v !== null && v !== '') vals.push({w, v: parseFloat(v)});
+  }
+  if(vals.length === 0) return null;
+  const baseline = vals[0].v;
+  const current = vals[vals.length-1].v;
+  const hasTarget = meta.lagTarget !== undefined && meta.lagTarget !== null && meta.lagTarget !== '';
+  const target = hasTarget ? parseFloat(meta.lagTarget) : null;
+  let pct = null;
+  if(hasTarget && target !== baseline){
+    pct = ((current - baseline) / (target - baseline)) * 100;
+    pct = Math.max(0, Math.min(100, Math.round(pct)));
+  }
+  return { baseline, current, target, hasTarget, pct, vals };
+}
+function sparklineSvg(vals){
+  if(vals.length < 2) return '<span style="color:var(--muted);font-size:0.72rem;">poucos dados</span>';
+  const ys = vals.map(v=>v.v);
+  const min = Math.min(...ys), max = Math.max(...ys);
+  const range = (max-min) || 1;
+  const pts = vals.map(v=>{
+    const x = (v.w/11)*100;
+    const y = 22 - ((v.v-min)/range)*20;
+    return `${x.toFixed(1)},${y.toFixed(1)}`;
+  }).join(' ');
+  return `<svg width="72" height="24" viewBox="0 0 100 24" preserveAspectRatio="none"><polyline points="${pts}" fill="none" stroke="#1BA672" stroke-width="4"/></svg>`;
+}
+function progressCellHtml(info){
+  if(!info) return `<span style="color:var(--muted);font-size:0.72rem;">sem dados</span>`;
+  const spark = sparklineSvg(info.vals);
+  let summary = `${info.baseline} → ${info.current}`;
+  if(info.hasTarget) summary += ` <span style="color:var(--muted);">(meta ${info.target})</span>`;
+  let pctLine = '';
+  if(info.pct !== null){
+    const barColor = info.pct >= 100 ? '#1BA672' : (info.pct >= 40 ? '#BE8A34' : '#A44A34');
+    pctLine = `<div style="display:flex;align-items:center;gap:6px;margin-top:3px;">
+      <div style="width:50px;height:5px;background:var(--line);border-radius:3px;overflow:hidden;"><div style="height:100%;width:${info.pct}%;background:${barColor};"></div></div>
+      <span style="font-size:0.72rem;color:var(--muted);">${info.pct}%</span>
+    </div>`;
+  }
+  return `<div>${spark}</div><div style="font-size:0.74rem;margin-top:2px;">${summary}</div>${pctLine}`;
+}
+function refreshLagProgressCell(meta){
+  const cell = document.getElementById('progress-cell-'+meta.id);
+  if(!cell) return;
+  cell.innerHTML = progressCellHtml(lagProgressInfo(meta));
+}
+function renderLagTable(){
+  const table = document.getElementById('lagTable');
+  const metasWithLag = state.metas.filter(m => m.lagName && m.lagName.trim());
+  if(metasWithLag.length === 0){ table.innerHTML = '<tr><td style="padding:10px 0;color:var(--muted);">defina um indicador de atraso em alguma meta pra acompanhar aqui.</td></tr>'; return; }
+  let head = '<tr><th>indicador</th>';
+  for(let w=1;w<=12;w++) head += `<th>S${w}</th>`;
+  head += '<th>progresso</th></tr>';
+  let rows = '';
+  metasWithLag.forEach(m=>{
+    rows += `<tr><td>${escapeHtml(m.lagName)}${m.lagUnit?' ('+escapeHtml(m.lagUnit)+')':''}</td>`;
+    for(let w=0; w<12; w++){
+      const val = state.weeks[w].lag[m.id];
+      rows += `<td><input type="number" step="any" value="${val!==undefined && val!==null ? val : ''}" data-mid="${m.id}" data-week="${w}" style="width:56px;border:1px solid var(--line);border-radius:3px;padding:4px;text-align:center;"></td>`;
+    }
+    rows += `<td id="progress-cell-${m.id}" style="text-align:left;white-space:normal;">${progressCellHtml(lagProgressInfo(m))}</td>`;
+    rows += '</tr>';
+  });
+  table.innerHTML = head + rows;
+  table.querySelectorAll('input[data-mid]').forEach(inp=>{
+    inp.addEventListener('input', e=>{
+      const mid = e.target.dataset.mid, wk = parseInt(e.target.dataset.week);
+      const v = e.target.value === '' ? null : parseFloat(e.target.value);
+      if(v === null) delete state.weeks[wk].lag[mid]; else state.weeks[wk].lag[mid] = v;
+      const meta = state.metas.find(x=>x.id===mid);
+      if(meta) refreshLagProgressCell(meta);
+      scheduleSave();
+    });
+  });
+}
+
+/* ---------- HISTÓRICO & CONCLUIR CICLO ---------- */
+let historyOpenIds = new Set();
+function renderHistorico(){
+  const el = document.getElementById('historicoList');
+  if(!state.cycleHistory || state.cycleHistory.length === 0){
+    el.innerHTML = '<p class="empty-note">nenhum ciclo concluído ainda — quando você concluir um na aba Placar, ele aparece aqui.</p>';
+    return;
+  }
+  let html = '';
+  [...state.cycleHistory].reverse().forEach(c=>{
+    const isOpen = historyOpenIds.has(c.id);
+    const cTaticas = c.taticas || [];
+    const cWeeks = c.weeks || [];
+    const cMetas = c.metas || [];
+
+    let pillsHtml = '';
+    for(let i=0;i<12;i++){
+      const pct = cWeeks.length ? weekPct(i, cTaticas, cWeeks) : null;
+      pillsHtml += `<div class="week-pill${pct!==null?' has-data':''}" style="cursor:default;"><span class="wn">S${i+1}</span><span class="wp">${pct!==null?pct+'%':'—'}</span></div>`;
+    }
+
+    let lagRowsHtml = '';
+    const metasWithLag = cMetas.filter(m=>m.lagName && m.lagName.trim());
+    if(metasWithLag.length === 0){
+      lagRowsHtml = '<p class="empty-note">nenhum indicador de atraso registrado neste ciclo.</p>';
+    } else {
+      let head = '<tr><th>indicador</th>';
+      for(let w=1;w<=12;w++) head += `<th>S${w}</th>`;
+      head += '<th>progresso</th></tr>';
+      let rows = '';
+      metasWithLag.forEach(m=>{
+        rows += `<tr><td>${escapeHtml(m.lagName)}${m.lagUnit?' ('+escapeHtml(m.lagUnit)+')':''}</td>`;
+        for(let w=0; w<12; w++){
+          const val = cWeeks[w] ? cWeeks[w].lag[m.id] : undefined;
+          rows += `<td>${val!==undefined && val!==null && val!=='' ? val : '—'}</td>`;
+        }
+        rows += `<td style="text-align:left;white-space:normal;">${progressCellHtml(lagProgressInfo(m, cWeeks))}</td></tr>`;
+      });
+      lagRowsHtml = `<div class="lag-table-wrap"><table class="lag-table">${head+rows}</table></div>`;
+    }
+
+    let notesHtml = '';
+    cWeeks.forEach((w,i)=>{
+      const hasNote = w.notes && (w.notes.wentWell || w.notes.stuck || w.notes.adjust);
+      if(hasNote){
+        notesHtml += `<div class="history-week-note">
+          <p class="history-week-note-title">Semana ${i+1}</p>
+          ${w.notes.wentWell ? `<p><strong>deu certo:</strong> ${escapeHtml(w.notes.wentWell)}</p>` : ''}
+          ${w.notes.stuck ? `<p><strong>travou:</strong> ${escapeHtml(w.notes.stuck)}</p>` : ''}
+          ${w.notes.adjust ? `<p><strong>ajuste:</strong> ${escapeHtml(w.notes.adjust)}</p>` : ''}
+        </div>`;
+      }
+    });
+
+    let metasListHtml = '';
+    cMetas.forEach(m=>{
+      const taticasForMeta = cTaticas.filter(t=>t.metaId===m.id);
+      let taticasLines = taticasForMeta.map(t=>{
+        const kind = t.type==='recorrente' ? `${t.target}x/sem` : `estratégia, semana ${t.week}`;
+        return `<li>${escapeHtml(t.text||'(sem nome)')} — ${kind}</li>`;
+      }).join('');
+      metasListHtml += `<div class="history-meta-block">
+        <p class="history-meta-title">${escapeHtml(m.text||'(meta sem nome)')} <span style="color:var(--muted);font-weight:400;">— ${escapeHtml(m.area||'')}</span></p>
+        ${taticasLines ? `<ul class="history-metas">${taticasLines}</ul>` : ''}
+      </div>`;
+    });
+
+    html += `<div class="history-card">
+      <div class="history-top history-toggle" data-id="${c.id}" style="cursor:pointer;">
+        <span class="history-name">${isOpen?'▾':'▸'} ${escapeHtml(c.name)}</span>
+        <span class="history-pct">${c.executionAvg}% execução</span>
+      </div>
+      <p class="history-dates">${c.start} a ${c.end}</p>
+      ${isOpen ? `
+        <div class="history-detail">
+          <p class="history-subtitle">Semana a semana</p>
+          <div class="week-pills" style="margin-bottom:18px;">${pillsHtml}</div>
+          <p class="history-subtitle">Metas e táticas</p>
+          ${metasListHtml || '<p class="empty-note">nenhuma meta registrada.</p>'}
+          <p class="history-subtitle" style="margin-top:18px;">Resultados</p>
+          ${lagRowsHtml}
+          ${notesHtml ? `<p class="history-subtitle" style="margin-top:18px;">Revisões semanais</p>${notesHtml}` : ''}
+        </div>
+      ` : ''}
+    </div>`;
+  });
+  el.innerHTML = html;
+  el.querySelectorAll('.history-toggle').forEach(row=>{
+    row.addEventListener('click', ()=>{
+      const id = row.dataset.id;
+      if(historyOpenIds.has(id)) historyOpenIds.delete(id); else historyOpenIds.add(id);
+      renderHistorico();
+    });
+  });
+}
+document.getElementById('concludeCycleBtn').addEventListener('click', ()=>{
+  const msg = (state.metas.length === 0)
+    ? 'Não há metas registradas neste ciclo. Ainda assim concluir e começar um novo?'
+    : `Concluir "${state.cycleName}" e começar um novo ciclo?\n\nIsso arquiva as metas, táticas e semanas atuais no Histórico (com todos os detalhes, pra você poder abrir e ver depois) e limpa o quadro para o próximo ciclo. Áreas, visão, L3 e blocos de tempo continuam do jeito que estão.`;
+  if(!confirm(msg)) return;
+
+  const pcts = state.weeks.map((_,i)=>weekPct(i)).filter(p=>p!==null);
+  const executionAvg = pcts.length ? Math.round(pcts.reduce((a,b)=>a+b,0)/pcts.length) : 0;
+  state.cycleHistory.push({
+    id: uid('h'),
+    name: state.cycleName,
+    start: state.cycleStart,
+    end: addDays(state.cycleStart, 83),
+    executionAvg,
+    metas: JSON.parse(JSON.stringify(state.metas)),
+    taticas: JSON.parse(JSON.stringify(state.taticas)),
+    weeks: JSON.parse(JSON.stringify(state.weeks))
+  });
+
+  const newName = (prompt('Nome do novo ciclo:', 'Novo Ciclo') || 'Novo Ciclo').trim() || 'Novo Ciclo';
+  state.cycleName = newName;
+  state.cycleStart = addDays(state.cycleStart, 84);
+  state.metas = [];
+  state.taticas = [];
+  state.weeks = Array.from({length:12}, () => ({ prog:{}, lag:{}, routine:{avaliei:false,planejei:false,rsr:false,blocos:false}, notes:{wentWell:'',stuck:'',adjust:''} }));
+  selectedWeek = 0;
+  renderAll();
+  scheduleSave();
+});
+
+/* ---------- TEMPO & EQUIPE ---------- */
+function renderBlocksList(){
+  const list = document.getElementById('blocksList'); list.innerHTML = '';
+  const dayOpts = ['segunda','terça','quarta','quinta','sexta','sábado','domingo','todo dia'];
+  state.blocks.forEach((b,i)=>{
+    const row = document.createElement('div'); row.className='block-row';
+    row.innerHTML = `
+      <input type="text" value="${escapeHtml(b.label)}" data-idx="${i}" data-field="label" class="block-label">
+      <select data-idx="${i}" data-field="day">${dayOpts.map(d=>`<option value="${d}" ${d===b.day?'selected':''}>${d}</option>`).join('')}</select>
+      <input type="text" value="${escapeHtml(b.start)}" data-idx="${i}" data-field="start" placeholder="08:00">
+      <input type="text" value="${escapeHtml(b.duration)}" data-idx="${i}" data-field="duration" placeholder="3h">
+      <button class="del-x" data-idx="${i}">✕</button>`;
+    list.appendChild(row);
+  });
+  list.querySelectorAll('[data-field]').forEach(el=>{
+    el.addEventListener('input', e=>{
+      const idx = parseInt(e.target.dataset.idx), field = e.target.dataset.field;
+      state.blocks[idx][field] = e.target.value; scheduleSave();
+    });
+    el.addEventListener('change', e=>{
+      const idx = parseInt(e.target.dataset.idx), field = e.target.dataset.field;
+      state.blocks[idx][field] = e.target.value; scheduleSave();
+    });
+  });
+  list.querySelectorAll('.del-x').forEach(btn=>btn.addEventListener('click', ()=>{
+    state.blocks.splice(parseInt(btn.dataset.idx),1); renderBlocksList(); scheduleSave();
+  }));
+}
+document.getElementById('addBlockBtn').addEventListener('click', ()=>{
+  state.blocks.push({ label:'Novo bloco', day:'segunda', start:'09:00', duration:'1h' });
+  renderBlocksList(); scheduleSave();
+});
+document.getElementById('rsrMembers').addEventListener('input', e=>{ state.rsrMembers = e.target.value; scheduleSave(); });
+document.getElementById('rsrWhen').addEventListener('input', e=>{ state.rsrWhen = e.target.value; scheduleSave(); });
+
+function renderTeamFields(){
+  document.getElementById('rsrMembers').value = state.rsrMembers;
+  document.getElementById('rsrWhen').value = state.rsrWhen;
+}
+
+function renderAll(){
+  renderNav();
+  renderCycle();
+  renderHero();
+  renderAreaBars();
+  renderCoverBanner('visaoCoverContainer','visaoCover');
+  renderCoverBanner('l3CoverContainer','l3Cover');
+  renderVisaoBulletsList();
+  renderL3BulletsList();
+  renderMetasList();
+  renderWeekPills();
+  renderWeekPanel();
+  renderCycleProgress();
+  renderHistorico();
+  renderBlocksList();
+  renderTeamFields();
+}
+
+loadState();
+</script>
+</body>
+</html>
