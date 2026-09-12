@@ -213,6 +213,7 @@
   .history-week-note{background:var(--green-soft);border:1px solid var(--line);border-radius:4px;padding:10px 12px;margin-bottom:8px;font-size:0.82rem;}
   .history-week-note-title{font-weight:600;margin:0 0 4px;}
   .history-week-note p{margin:2px 0;}
+  .history-week-detail{background:var(--green-soft);border:1px solid var(--line);border-radius:6px;padding:12px 14px;margin-bottom:18px;}
 
   .lag-table-wrap{overflow-x:auto;}
   table.lag-table{border-collapse:collapse;width:100%;font-size:0.78rem;}
@@ -1123,6 +1124,7 @@ function renderLagTable(){
 
 /* ---------- HISTÓRICO & CONCLUIR CICLO ---------- */
 let historyOpenIds = new Set();
+let historySelectedWeek = {};
 function renderHistorico(){
   const el = document.getElementById('historicoList');
   if(!state.cycleHistory || state.cycleHistory.length === 0){
@@ -1135,11 +1137,46 @@ function renderHistorico(){
     const cTaticas = c.taticas || [];
     const cWeeks = c.weeks || [];
     const cMetas = c.metas || [];
+    const selWeek = historySelectedWeek[c.id];
 
     let pillsHtml = '';
     for(let i=0;i<12;i++){
       const pct = cWeeks.length ? weekPct(i, cTaticas, cWeeks) : null;
-      pillsHtml += `<div class="week-pill${pct!==null?' has-data':''}" style="cursor:default;"><span class="wn">S${i+1}</span><span class="wp">${pct!==null?pct+'%':'—'}</span></div>`;
+      const sel = selWeek === i ? ' selected' : '';
+      pillsHtml += `<div class="week-pill${pct!==null?' has-data':''}${sel}" data-cycle-id="${c.id}" data-week="${i}"><span class="wn">S${i+1}</span><span class="wp">${pct!==null?pct+'%':'—'}</span></div>`;
+    }
+
+    let weekDetailHtml = '';
+    if(selWeek !== undefined && selWeek !== null){
+      const wn = selWeek + 1;
+      const active = cTaticas.filter(t => t.type==='recorrente' || (t.type==='unica' && t.week===wn));
+      const w = cWeeks[selWeek];
+      let rowsHtml = '';
+      if(!w || active.length === 0){
+        rowsHtml = '<p class="empty-note">nenhuma tática ativa nessa semana.</p>';
+      } else {
+        active.forEach(t=>{
+          const metaName = escapeHtml(metaNameForList(cMetas, t.metaId));
+          if(t.type==='recorrente'){
+            const done = w.prog[t.id] || 0;
+            rowsHtml += `<div class="plan-row"><div class="plan-name">${escapeHtml(t.text||'(sem nome)')} <span class="meta-note">meta: ${metaName} — ${t.target}x/sem</span></div><span style="font-size:0.82rem;color:var(--muted);text-align:right;">${done}/${t.target}</span></div>`;
+          } else {
+            const done = !!w.prog[t.id];
+            rowsHtml += `<div class="plan-row"><div class="plan-name">${escapeHtml(t.text||'(sem nome)')} <span class="meta-note">meta: ${metaName} — ação única</span></div><span style="font-size:0.82rem;color:var(--muted);text-align:right;">${done?'feito':'pendente'}</span></div>`;
+          }
+        });
+      }
+      const note = w && w.notes && (w.notes.wentWell || w.notes.stuck || w.notes.adjust) ? `
+        <div class="history-week-note" style="margin-top:12px;">
+          ${w.notes.wentWell ? `<p><strong>deu certo:</strong> ${escapeHtml(w.notes.wentWell)}</p>` : ''}
+          ${w.notes.stuck ? `<p><strong>travou:</strong> ${escapeHtml(w.notes.stuck)}</p>` : ''}
+          ${w.notes.adjust ? `<p><strong>ajuste:</strong> ${escapeHtml(w.notes.adjust)}</p>` : ''}
+        </div>` : '';
+      weekDetailHtml = `<div class="history-week-detail">
+        <p class="history-week-note-title">Semana ${wn}</p>
+        ${rowsHtml}
+        ${note}
+      </div>`;
     }
 
     let lagRowsHtml = '';
@@ -1196,9 +1233,10 @@ function renderHistorico(){
       <p class="history-dates">${c.start} a ${c.end}</p>
       ${isOpen ? `
         <div class="history-detail">
-          <p class="history-subtitle">Semana a semana</p>
-          <div class="week-pills" style="margin-bottom:18px;">${pillsHtml}</div>
-          <p class="history-subtitle">Metas e táticas</p>
+          <p class="history-subtitle">Semana a semana — clique numa semana pra ver o detalhe</p>
+          <div class="week-pills" style="margin-bottom:12px;">${pillsHtml}</div>
+          ${weekDetailHtml}
+          <p class="history-subtitle" style="margin-top:18px;">Metas e táticas</p>
           ${metasListHtml || '<p class="empty-note">nenhuma meta registrada.</p>'}
           <p class="history-subtitle" style="margin-top:18px;">Resultados</p>
           ${lagRowsHtml}
@@ -1215,6 +1253,18 @@ function renderHistorico(){
       renderHistorico();
     });
   });
+  el.querySelectorAll('.week-pill[data-cycle-id]').forEach(pill=>{
+    pill.addEventListener('click', e=>{
+      e.stopPropagation();
+      const cid = pill.dataset.cycleId, wk = parseInt(pill.dataset.week);
+      historySelectedWeek[cid] = (historySelectedWeek[cid] === wk) ? null : wk;
+      renderHistorico();
+    });
+  });
+}
+function metaNameForList(metasList, id){
+  const m = metasList.find(x=>x.id===id);
+  return m ? (m.text || '(meta sem nome)') : '';
 }
 document.getElementById('concludeCycleBtn').addEventListener('click', ()=>{
   const msg = (state.metas.length === 0)
