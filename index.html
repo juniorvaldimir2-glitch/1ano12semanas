@@ -205,6 +205,8 @@
   .history-name{font-family:'Poppins',sans-serif;font-weight:700;font-size:1rem;color:#0F1112;}
   .history-pct{font-size:0.85rem;color:var(--green);font-weight:600;}
   .history-dates{font-size:0.78rem;color:var(--muted);margin:2px 0 10px;}
+  .history-delete{background:none;border:none;color:var(--muted);font-size:0.72rem;text-decoration:underline;cursor:pointer;font-family:'Inter',sans-serif;padding:0;margin-left:8px;}
+  .history-delete:hover{color:var(--alert);}
   .history-metas{margin:0;padding-left:18px;font-size:0.85rem;line-height:1.7;}
   .history-detail{margin-top:14px;padding-top:14px;border-top:1px solid var(--line);}
   .history-subtitle{font-family:'Poppins',sans-serif;font-weight:700;font-size:0.85rem;margin:0 0 8px;color:#0F1112;}
@@ -1230,7 +1232,7 @@ function renderHistorico(){
         <span class="history-name">${isOpen?'▾':'▸'} ${escapeHtml(c.name)}</span>
         <span class="history-pct">${c.executionAvg}% execução</span>
       </div>
-      <p class="history-dates">${c.start} a ${c.end}</p>
+      <p class="history-dates">${c.start} a ${c.end} <button class="history-delete" data-id="${c.id}">excluir ciclo</button></p>
       ${isOpen ? `
         <div class="history-detail">
           <p class="history-subtitle">Semana a semana — clique numa semana pra ver o detalhe</p>
@@ -1259,6 +1261,20 @@ function renderHistorico(){
       const cid = pill.dataset.cycleId, wk = parseInt(pill.dataset.week);
       historySelectedWeek[cid] = (historySelectedWeek[cid] === wk) ? null : wk;
       renderHistorico();
+    });
+  });
+  el.querySelectorAll('.history-delete').forEach(btn=>{
+    btn.addEventListener('click', e=>{
+      e.stopPropagation();
+      const id = btn.dataset.id;
+      const cycle = state.cycleHistory.find(c=>c.id===id);
+      const name = cycle ? cycle.name : 'este ciclo';
+      if(!confirm(`Excluir "${name}" do histórico? Isso não pode ser desfeito.`)) return;
+      state.cycleHistory = state.cycleHistory.filter(c=>c.id!==id);
+      delete historySelectedWeek[id];
+      historyOpenIds.delete(id);
+      renderHistorico();
+      scheduleSave();
     });
   });
 }
