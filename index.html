@@ -145,9 +145,14 @@
   .lag-row input:focus{outline:1px solid var(--teal);}
   .lag-target-hint{font-size:0.72rem;color:var(--muted);margin:-8px 0 14px;}
   .tatica-list{border-top:1px solid var(--line);padding-top:12px;}
-  .tatica-row{display:grid;grid-template-columns:1fr 110px 90px 30px;gap:8px;align-items:center;padding:6px 0;}
+  .tatica-item{padding:6px 0;border-bottom:1px solid var(--line);}
+  .tatica-item:last-child{border-bottom:none;}
+  .tatica-row{display:grid;grid-template-columns:1fr 130px 70px 90px 28px 28px;gap:8px;align-items:center;padding:0;}
+  .tatica-spacer{display:block;}
   .tatica-row input[type=text]{font-family:'Inter',sans-serif;font-size:0.84rem;border:1px solid var(--line);border-radius:3px;padding:7px 9px;background:#fff;color:var(--ink);width:100%;}
   .tatica-row select, .tatica-row input[type=number]{font-size:0.8rem;padding:7px 8px;}
+  .dup-x{background:none;border:1px solid var(--line);border-radius:3px;color:var(--teal);cursor:pointer;font-size:0.9rem;line-height:1;padding:6px;}
+  .dup-x:hover{background:var(--green-soft);}
   .del-x{background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.95rem;}
   .del-x:hover{color:var(--alert);}
   .meta-actions{display:flex;justify-content:space-between;align-items:center;margin-top:12px;}
@@ -456,12 +461,21 @@ function migrateState(parsed){
     defaultTabOrder.forEach(id=>{ if(!state.tabOrder.includes(id)) state.tabOrder.push(id); });
     state.tabOrder = state.tabOrder.filter(id=> defaultTabOrder.includes(id));
   }
+  if(!Array.isArray(state.taticas)) state.taticas = [];
+  state.taticas.forEach(t=>{
+    if(typeof t.week !== 'number') t.week = t.startWeek || 1;
+    delete t.startWeek; delete t.endWeek;
+  });
   if(!Array.isArray(state.cycleHistory)) state.cycleHistory = [];
   state.cycleHistory.forEach(c=>{
     if(!c.id) c.id = uid('h');
     if(!Array.isArray(c.metas)) c.metas = [];
     if(!Array.isArray(c.taticas)) c.taticas = [];
     if(!Array.isArray(c.weeks)) c.weeks = [];
+    c.taticas.forEach(t=>{
+      if(typeof t.week !== 'number') t.week = t.startWeek || 1;
+      delete t.startWeek; delete t.endWeek;
+    });
   });
   state.areas.forEach(a=>{
     if(typeof a.vision === 'string') a.vision = a.vision.split(/\n+/).map(s=>s.trim()).filter(Boolean);
@@ -823,16 +837,20 @@ function renderMetasList(){
     const card = document.createElement('div'); card.className = 'meta-card';
     let taticasHtml = '';
     taticas.forEach(t=>{
-      taticasHtml += `<div class="tatica-row">
-        <input type="text" value="${escapeHtml(t.text)}" data-tid="${t.id}" data-field="text" placeholder="ação, começando com um verbo">
-        <select data-tid="${t.id}" data-field="type">
-          <option value="recorrente" ${t.type==='recorrente'?'selected':''}>tarefa recorrente</option>
-          <option value="unica" ${t.type==='unica'?'selected':''}>estratégia (1 vez)</option>
-        </select>
-        ${t.type==='recorrente'
-          ? `<input type="number" min="1" max="30" value="${t.target}" data-tid="${t.id}" data-field="target" title="vezes/semana">`
-          : `<select data-tid="${t.id}" data-field="week">${weekOptions(t.week)}</select>`}
-        <button class="del-x" data-tid="${t.id}" data-action="del-tatica">✕</button>
+      taticasHtml += `<div class="tatica-item">
+        <div class="tatica-row">
+          <input type="text" value="${escapeHtml(t.text)}" data-tid="${t.id}" data-field="text" placeholder="ação, começando com um verbo">
+          <select data-tid="${t.id}" data-field="type">
+            <option value="recorrente" ${t.type==='recorrente'?'selected':''}>tarefa recorrente</option>
+            <option value="unica" ${t.type==='unica'?'selected':''}>estratégia (1 vez)</option>
+          </select>
+          ${t.type==='recorrente'
+            ? `<input type="number" min="1" max="30" value="${t.target}" data-tid="${t.id}" data-field="target" title="vezes/semana">`
+            : `<span class="tatica-spacer"></span>`}
+          <select data-tid="${t.id}" data-field="week" title="semana">${weekOptions(t.week)}</select>
+          <button class="dup-x" data-tid="${t.id}" data-action="dup-tatica" title="duplicar para a próxima semana">⧉</button>
+          <button class="del-x" data-tid="${t.id}" data-action="del-tatica">✕</button>
+        </div>
       </div>`;
     });
     card.innerHTML = `
@@ -885,6 +903,16 @@ function renderMetasList(){
       renderMetasList(); renderWeekPanel(); renderWeekPills(); scheduleSave();
     });
   });
+  list.querySelectorAll('[data-action="dup-tatica"]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const tid = btn.dataset.tid;
+      const t = state.taticas.find(x=>x.id===tid);
+      if(!t) return;
+      const newWeek = Math.min(12, (t.week||1)+1);
+      state.taticas.push({ id: uid('t'), metaId: t.metaId, text: t.text, type: t.type, target: t.target, week: newWeek });
+      renderMetasList(); renderWeekPanel(); renderWeekPills(); scheduleSave();
+    });
+  });
   list.querySelectorAll('[data-action="del-tatica"]').forEach(btn=>{
     btn.addEventListener('click', ()=>{
       const tid = btn.dataset.tid;
@@ -913,7 +941,7 @@ document.getElementById('addMetaBtn').addEventListener('click', ()=>{
 function activeTaticasForWeek(weekIdx, taticasList){
   taticasList = taticasList || state.taticas;
   const wn = weekIdx+1;
-  return taticasList.filter(t => t.type==='recorrente' || (t.type==='unica' && t.week===wn));
+  return taticasList.filter(t => (t.week||1)===wn);
 }
 function weekPct(weekIdx, taticasList, weeksList){
   taticasList = taticasList || state.taticas;
@@ -955,7 +983,7 @@ function renderWeekPanel(){
   if(state.metas.length === 0){
     bodyHtml = `<p class="empty-note">Cadastre metas e táticas na aba "Metas de 12 Semanas" pra começar.</p>`;
   } else if(active.length === 0){
-    bodyHtml = `<p class="empty-note">Nenhuma tática ativa nesta semana. Táticas recorrentes aparecem toda semana; táticas de uma vez só na semana marcada.</p>`;
+    bodyHtml = `<p class="empty-note">Nenhuma tática ativa nesta semana. Toda tática (recorrente ou estratégia) vale para a semana marcada nela; use o botão ⧉ para duplicá-la para a semana seguinte.</p>`;
   } else {
     active.forEach(t=>{
       const target = t.type==='recorrente' ? t.target : 1;
@@ -1151,7 +1179,7 @@ function renderHistorico(){
     let weekDetailHtml = '';
     if(selWeek !== undefined && selWeek !== null){
       const wn = selWeek + 1;
-      const active = cTaticas.filter(t => t.type==='recorrente' || (t.type==='unica' && t.week===wn));
+      const active = activeTaticasForWeek(selWeek, cTaticas);
       const w = cWeeks[selWeek];
       let rowsHtml = '';
       if(!w || active.length === 0){
@@ -1218,7 +1246,7 @@ function renderHistorico(){
     cMetas.forEach(m=>{
       const taticasForMeta = cTaticas.filter(t=>t.metaId===m.id);
       let taticasLines = taticasForMeta.map(t=>{
-        const kind = t.type==='recorrente' ? `${t.target}x/sem` : `estratégia, semana ${t.week}`;
+        const kind = t.type==='recorrente' ? `${t.target}x/sem, semana ${t.week}` : `estratégia, semana ${t.week}`;
         return `<li>${escapeHtml(t.text||'(sem nome)')} — ${kind}</li>`;
       }).join('');
       metasListHtml += `<div class="history-meta-block">
