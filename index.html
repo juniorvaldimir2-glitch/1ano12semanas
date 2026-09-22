@@ -242,6 +242,21 @@
   .empty-note{color:var(--muted);font-size:0.86rem;padding:16px 0;}
   .save-status{position:fixed;bottom:20px;right:24px;font-size:0.75rem;color:var(--muted);background:var(--paper-raised);border:1px solid var(--line);padding:6px 12px;border-radius:20px;opacity:0;transition:opacity .3s;}
   .save-status.show{opacity:1;}
+  .cloud-warning{background:#FBEFE3;color:#8A5A1E;border-bottom:1px solid #EAD3B0;font-size:0.8rem;padding:10px 20px;text-align:center;}
+
+  .login-overlay{position:fixed;inset:0;background:rgba(20,20,20,0.55);display:flex;align-items:center;justify-content:center;z-index:1000;}
+  .login-card{background:#fff;border-radius:8px;padding:32px 30px;width:320px;max-width:90vw;display:flex;flex-direction:column;gap:12px;box-shadow:0 10px 40px rgba(0,0,0,0.2);}
+  .login-title{font-family:'Poppins',sans-serif;font-weight:800;font-size:1.2rem;margin:0;color:#0F1112;}
+  .login-sub{font-size:0.82rem;color:var(--muted);margin:0 0 6px;line-height:1.5;}
+  .login-card input{font-family:'Inter',sans-serif;font-size:0.9rem;border:1px solid var(--line);border-radius:4px;padding:10px 12px;}
+  .login-card input:focus{outline:1px solid var(--teal);}
+  .login-btn{background:var(--teal);color:#fff;border:none;border-radius:4px;padding:11px;font-size:0.88rem;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;margin-top:4px;}
+  .login-btn:hover{background:#1c433e;}
+  .login-error{color:var(--alert);font-size:0.8rem;margin:0;min-height:1em;}
+
+  .logout-link{background:none;border:none;color:var(--muted);font-size:0.74rem;text-decoration:underline;cursor:pointer;font-family:'Inter',sans-serif;padding:0;}
+  .logout-link:hover{color:var(--alert);}
+  .sync-status{font-size:0.74rem;color:var(--muted);}
   /* remove native number-input spinner arrows everywhere */
   input[type=number]::-webkit-outer-spin-button,
   input[type=number]::-webkit-inner-spin-button{
@@ -254,7 +269,26 @@
   }
 </style>
 </head>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
 <body>
+
+<div id="cloudSetupWarning" class="cloud-warning" style="display:none;">
+  ⚠️ A configuração da nuvem (Firebase) ainda não foi preenchida no código — o app está funcionando só neste navegador por enquanto. Veja as instruções que vieram junto com este arquivo.
+</div>
+
+<div id="loginOverlay" class="login-overlay" style="display:none;">
+  <form class="login-card" id="loginForm">
+    <p class="login-title">1 Ano em 12 Semanas</p>
+    <p class="login-sub">Entre com a conta que você criou no Firebase pra sincronizar entre dispositivos.</p>
+    <input type="email" id="loginEmail" placeholder="e-mail" required autocomplete="username">
+    <input type="password" id="loginPassword" placeholder="senha" required autocomplete="current-password">
+    <button type="submit" class="login-btn">Entrar</button>
+    <p class="login-error" id="loginError"></p>
+  </form>
+</div>
+
 <div class="wrap">
 
   <header class="top">
@@ -270,11 +304,14 @@
   </header>
 
   <div class="backup-row">
-    <span class="backup-hint">seus dados ficam neste navegador/dispositivo —</span>
+    <span class="sync-status" id="syncStatus">carregando…</span>
+    <span class="backup-sep">·</span>
     <button class="backup-btn" id="exportBtn">exportar backup</button>
     <span class="backup-sep">·</span>
     <button class="backup-btn" id="importBtn">importar backup</button>
     <input type="file" id="importFileInput" accept="application/json" style="display:none;">
+    <span class="backup-sep" id="logoutSep" style="display:none;">·</span>
+    <button class="logout-link" id="logoutBtn" style="display:none;">sair</button>
   </div>
 
   <nav class="tabs" id="tabNav"></nav>
@@ -433,9 +470,47 @@ let activeTabId = null;
 
 let saveTimer = null;
 function scheduleSave(){ clearTimeout(saveTimer); saveTimer = setTimeout(saveState, 500); }
+
+// ==================================================================
+// CONFIGURAÇÃO DA NUVEM — cole aqui os dados do SEU projeto Firebase
+// (Firebase Console → Configurações do projeto → Seus apps → SDK)
+// ==================================================================
+const firebaseConfig = {
+  apiKey: "AIzaSyBstTxyou_Jvp77QoXHE4u9QWldNCsGX94",
+  authDomain: "ano-em-12-semanas-725a7.firebaseapp.com",
+  projectId: "ano-em-12-semanas-725a7",
+  storageBucket: "ano-em-12-semanas-725a7.firebasestorage.app",
+  messagingSenderId: "979493507493",
+  appId: "1:979493507493:web:eff383cac858967d7c184c"
+};
+// ==================================================================
+
+let cloudEnabled = false;
+let currentUser = null;
+let db = null;
+
+function setSyncStatus(text){
+  const el = document.getElementById('syncStatus');
+  if(el) el.textContent = text;
+}
+
 async function saveState(){
-  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); flashSaved(); }
-  catch(e){ console.error('save failed', e); }
+  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+  catch(e){ console.error('local save failed', e); }
+  flashSaved();
+  if(cloudEnabled && currentUser){
+    try{
+      setSyncStatus('sincronizando…');
+      await db.collection('users').doc(currentUser.uid).collection('appdata').doc('state').set({
+        json: JSON.stringify(state),
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      setSyncStatus('sincronizado ✓');
+    }catch(e){
+      console.error('cloud save failed', e);
+      setSyncStatus('sem conexão — salvo só neste dispositivo');
+    }
+  }
 }
 function flashSaved(){
   const el = document.getElementById('saveStatus');
@@ -490,15 +565,73 @@ function migrateState(parsed){
   if(typeof state.l3Cover.posY !== 'number') state.l3Cover.posY = 50;
 }
 
-async function loadState(){
+function loadLocalOnly(){
   try{
     const raw = localStorage.getItem(STORAGE_KEY);
-    if(raw){
-      migrateState(JSON.parse(raw));
-    }
+    if(raw) migrateState(JSON.parse(raw));
   }catch(e){ /* defaults stand */ }
+  setSyncStatus('salvo só neste navegador');
   renderAll();
 }
+
+async function loadFromCloud(){
+  setSyncStatus('carregando da nuvem…');
+  try{
+    const doc = await db.collection('users').doc(currentUser.uid).collection('appdata').doc('state').get();
+    if(doc.exists && doc.data().json){
+      migrateState(JSON.parse(doc.data().json));
+    } else {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if(raw) migrateState(JSON.parse(raw));
+    }
+    setSyncStatus('sincronizado ✓');
+  }catch(e){
+    console.error('cloud load failed, using local cache', e);
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(raw) migrateState(JSON.parse(raw));
+    setSyncStatus('sem conexão — mostrando cópia local');
+  }
+  renderAll();
+}
+
+function initApp(){
+  const configFilled = firebaseConfig.apiKey && firebaseConfig.apiKey !== 'COLE_AQUI';
+  if(!configFilled || typeof firebase === 'undefined'){
+    document.getElementById('cloudSetupWarning').style.display = 'block';
+    document.getElementById('loginOverlay').style.display = 'none';
+    loadLocalOnly();
+    return;
+  }
+  cloudEnabled = true;
+  firebase.initializeApp(firebaseConfig);
+  db = firebase.firestore();
+  firebase.auth().onAuthStateChanged(user=>{
+    if(user){
+      currentUser = user;
+      document.getElementById('loginOverlay').style.display = 'none';
+      document.getElementById('logoutBtn').style.display = 'inline';
+      document.getElementById('logoutSep').style.display = 'inline';
+      loadFromCloud();
+    } else {
+      currentUser = null;
+      document.getElementById('loginOverlay').style.display = 'flex';
+      document.getElementById('logoutBtn').style.display = 'none';
+      document.getElementById('logoutSep').style.display = 'none';
+    }
+  });
+}
+document.getElementById('loginForm').addEventListener('submit', e=>{
+  e.preventDefault();
+  const email = document.getElementById('loginEmail').value;
+  const pass = document.getElementById('loginPassword').value;
+  const errEl = document.getElementById('loginError');
+  errEl.textContent = '';
+  firebase.auth().signInWithEmailAndPassword(email, pass)
+    .catch(()=>{ errEl.textContent = 'E-mail ou senha incorretos.'; });
+});
+document.getElementById('logoutBtn').addEventListener('click', ()=>{
+  if(cloudEnabled) firebase.auth().signOut();
+});
 
 /* ---------- EXPORT / IMPORT (backup between devices) ---------- */
 function exportState(){
@@ -694,7 +827,7 @@ function readAndCompressImage(file, maxW, cb){
       const canvas = document.createElement('canvas');
       canvas.width = w; canvas.height = h;
       canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-      cb(canvas.toDataURL('image/jpeg', 0.78));
+      cb(canvas.toDataURL('image/jpeg', 0.68));
     };
     img.src = ev.target.result;
   };
@@ -756,7 +889,7 @@ document.getElementById('coverFileInput').addEventListener('change', e=>{
   const file = e.target.files[0];
   if(!file || !pendingCoverKey) return;
   const key = pendingCoverKey;
-  readAndCompressImage(file, 1400, dataUrl=>{
+  readAndCompressImage(file, 1000, dataUrl=>{
     state[key] = { src: dataUrl, posY: 50 };
     renderCoverBanner(key === 'visaoCover' ? 'visaoCoverContainer' : 'l3CoverContainer', key);
     scheduleSave();
@@ -1398,7 +1531,7 @@ function renderAll(){
   renderTeamFields();
 }
 
-loadState();
+initApp();
 </script>
 </body>
 </html>
