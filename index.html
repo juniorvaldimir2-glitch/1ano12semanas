@@ -147,12 +147,20 @@
   .tatica-list{border-top:1px solid var(--line);padding-top:12px;}
   .tatica-item{padding:6px 0;border-bottom:1px solid var(--line);}
   .tatica-item:last-child{border-bottom:none;}
-  .tatica-row{display:grid;grid-template-columns:1fr 130px 70px 90px 28px 28px;gap:8px;align-items:center;padding:0;}
+  .tatica-row{display:grid;grid-template-columns:1fr 130px 90px 28px;gap:8px;align-items:center;padding:0;}
   .tatica-spacer{display:block;}
   .tatica-row input[type=text]{font-family:'Inter',sans-serif;font-size:0.84rem;border:1px solid var(--line);border-radius:3px;padding:7px 9px;background:#fff;color:var(--ink);width:100%;}
   .tatica-row select, .tatica-row input[type=number]{font-size:0.8rem;padding:7px 8px;}
-  .dup-x{background:none;border:1px solid var(--line);border-radius:3px;color:var(--teal);cursor:pointer;font-size:0.9rem;line-height:1;padding:6px;}
-  .dup-x:hover{background:var(--green-soft);}
+  .week-sections{border-top:1px solid var(--line);margin-top:10px;padding-top:4px;}
+  .week-section{padding:2px 0;border-bottom:1px solid var(--line);}
+  .week-section:last-child{border-bottom:none;}
+  .week-section-head{display:flex;align-items:center;justify-content:space-between;padding:8px 2px;}
+  .week-section-toggle{cursor:pointer;user-select:none;}
+  .week-section-toggle:hover .week-section-title{color:var(--green);}
+  .week-section-title{font-family:'Poppins',sans-serif;font-weight:600;font-size:0.82rem;color:var(--teal);}
+  .week-section-count{font-size:0.72rem;color:var(--muted);}
+  .week-section-body{padding:0 2px 10px;}
+  .add-btn-sm{font-size:0.72rem;padding:4px 8px;}
   .del-x{background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.95rem;}
   .del-x:hover{color:var(--alert);}
   .meta-actions{display:flex;justify-content:space-between;align-items:center;margin-top:12px;}
@@ -242,21 +250,6 @@
   .empty-note{color:var(--muted);font-size:0.86rem;padding:16px 0;}
   .save-status{position:fixed;bottom:20px;right:24px;font-size:0.75rem;color:var(--muted);background:var(--paper-raised);border:1px solid var(--line);padding:6px 12px;border-radius:20px;opacity:0;transition:opacity .3s;}
   .save-status.show{opacity:1;}
-  .cloud-warning{background:#FBEFE3;color:#8A5A1E;border-bottom:1px solid #EAD3B0;font-size:0.8rem;padding:10px 20px;text-align:center;}
-
-  .login-overlay{position:fixed;inset:0;background:rgba(20,20,20,0.55);display:flex;align-items:center;justify-content:center;z-index:1000;}
-  .login-card{background:#fff;border-radius:8px;padding:32px 30px;width:320px;max-width:90vw;display:flex;flex-direction:column;gap:12px;box-shadow:0 10px 40px rgba(0,0,0,0.2);}
-  .login-title{font-family:'Poppins',sans-serif;font-weight:800;font-size:1.2rem;margin:0;color:#0F1112;}
-  .login-sub{font-size:0.82rem;color:var(--muted);margin:0 0 6px;line-height:1.5;}
-  .login-card input{font-family:'Inter',sans-serif;font-size:0.9rem;border:1px solid var(--line);border-radius:4px;padding:10px 12px;}
-  .login-card input:focus{outline:1px solid var(--teal);}
-  .login-btn{background:var(--teal);color:#fff;border:none;border-radius:4px;padding:11px;font-size:0.88rem;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;margin-top:4px;}
-  .login-btn:hover{background:#1c433e;}
-  .login-error{color:var(--alert);font-size:0.8rem;margin:0;min-height:1em;}
-
-  .logout-link{background:none;border:none;color:var(--muted);font-size:0.74rem;text-decoration:underline;cursor:pointer;font-family:'Inter',sans-serif;padding:0;}
-  .logout-link:hover{color:var(--alert);}
-  .sync-status{font-size:0.74rem;color:var(--muted);}
   /* remove native number-input spinner arrows everywhere */
   input[type=number]::-webkit-outer-spin-button,
   input[type=number]::-webkit-inner-spin-button{
@@ -269,26 +262,7 @@
   }
 </style>
 </head>
-<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
 <body>
-
-<div id="cloudSetupWarning" class="cloud-warning" style="display:none;">
-  ⚠️ A configuração da nuvem (Firebase) ainda não foi preenchida no código — o app está funcionando só neste navegador por enquanto. Veja as instruções que vieram junto com este arquivo.
-</div>
-
-<div id="loginOverlay" class="login-overlay" style="display:none;">
-  <form class="login-card" id="loginForm">
-    <p class="login-title">1 Ano em 12 Semanas</p>
-    <p class="login-sub">Entre com a conta que você criou no Firebase pra sincronizar entre dispositivos.</p>
-    <input type="email" id="loginEmail" placeholder="e-mail" required autocomplete="username">
-    <input type="password" id="loginPassword" placeholder="senha" required autocomplete="current-password">
-    <button type="submit" class="login-btn">Entrar</button>
-    <p class="login-error" id="loginError"></p>
-  </form>
-</div>
-
 <div class="wrap">
 
   <header class="top">
@@ -304,14 +278,11 @@
   </header>
 
   <div class="backup-row">
-    <span class="sync-status" id="syncStatus">carregando…</span>
-    <span class="backup-sep">·</span>
+    <span class="backup-hint">seus dados ficam neste navegador/dispositivo —</span>
     <button class="backup-btn" id="exportBtn">exportar backup</button>
     <span class="backup-sep">·</span>
     <button class="backup-btn" id="importBtn">importar backup</button>
     <input type="file" id="importFileInput" accept="application/json" style="display:none;">
-    <span class="backup-sep" id="logoutSep" style="display:none;">·</span>
-    <button class="logout-link" id="logoutBtn" style="display:none;">sair</button>
   </div>
 
   <nav class="tabs" id="tabNav"></nav>
@@ -467,54 +438,40 @@ let state = {
 };
 let selectedWeek = 0;
 let activeTabId = null;
+let metasOpenWeeks = new Set();
 
 let saveTimer = null;
 function scheduleSave(){ clearTimeout(saveTimer); saveTimer = setTimeout(saveState, 500); }
-
-// ==================================================================
-// CONFIGURAÇÃO DA NUVEM — cole aqui os dados do SEU projeto Firebase
-// (Firebase Console → Configurações do projeto → Seus apps → SDK)
-// ==================================================================
-const firebaseConfig = {
-  apiKey: "AIzaSyBstTxyou_Jvp77QoXHE4u9QWldNCsGX94",
-  authDomain: "ano-em-12-semanas-725a7.firebaseapp.com",
-  projectId: "ano-em-12-semanas-725a7",
-  storageBucket: "ano-em-12-semanas-725a7.firebasestorage.app",
-  messagingSenderId: "979493507493",
-  appId: "1:979493507493:web:eff383cac858967d7c184c"
-};
-// ==================================================================
-
-let cloudEnabled = false;
-let currentUser = null;
-let db = null;
-
-function setSyncStatus(text){
-  const el = document.getElementById('syncStatus');
-  if(el) el.textContent = text;
-}
-
 async function saveState(){
-  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
-  catch(e){ console.error('local save failed', e); }
-  flashSaved();
-  if(cloudEnabled && currentUser){
-    try{
-      setSyncStatus('sincronizando…');
-      await db.collection('users').doc(currentUser.uid).collection('appdata').doc('state').set({
-        json: JSON.stringify(state),
-        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-      });
-      setSyncStatus('sincronizado ✓');
-    }catch(e){
-      console.error('cloud save failed', e);
-      setSyncStatus('sem conexão — salvo só neste dispositivo');
-    }
-  }
+  try{ await window.storage.set(STORAGE_KEY, JSON.stringify(state), false); flashSaved(); }
+  catch(e){ console.error('save failed', e); }
 }
 function flashSaved(){
   const el = document.getElementById('saveStatus');
   el.classList.add('show'); setTimeout(()=>el.classList.remove('show'), 1200);
+}
+function taticaWeeksFromLegacy(t){
+  if(Array.isArray(t.weeks) && t.weeks.length) return t.weeks.slice().sort((a,b)=>a-b);
+  if(typeof t.startWeek === 'number' || typeof t.endWeek === 'number'){
+    const sw = t.startWeek || 1, ew = t.endWeek || 12;
+    const arr = []; for(let w=sw; w<=ew; w++) arr.push(w);
+    return arr;
+  }
+  if(typeof t.week === 'number') return [t.week];
+  return [1];
+}
+function explodeTaticasToSingleWeek(list){
+  const out = [];
+  list.forEach(t=>{
+    const weeksArr = taticaWeeksFromLegacy(t);
+    t.week = weeksArr[0];
+    delete t.weeks; delete t.startWeek; delete t.endWeek;
+    out.push(t);
+    for(let i=1;i<weeksArr.length;i++){
+      out.push({ id: uid('t'), metaId: t.metaId, text: t.text, type: t.type, target: t.target, week: weeksArr[i] });
+    }
+  });
+  return out;
 }
 function migrateState(parsed){
   if(parsed && Array.isArray(parsed.areas) && parsed.areas.length) state = parsed;
@@ -537,20 +494,14 @@ function migrateState(parsed){
     state.tabOrder = state.tabOrder.filter(id=> defaultTabOrder.includes(id));
   }
   if(!Array.isArray(state.taticas)) state.taticas = [];
-  state.taticas.forEach(t=>{
-    if(typeof t.week !== 'number') t.week = t.startWeek || 1;
-    delete t.startWeek; delete t.endWeek;
-  });
+  state.taticas = explodeTaticasToSingleWeek(state.taticas);
   if(!Array.isArray(state.cycleHistory)) state.cycleHistory = [];
   state.cycleHistory.forEach(c=>{
     if(!c.id) c.id = uid('h');
     if(!Array.isArray(c.metas)) c.metas = [];
     if(!Array.isArray(c.taticas)) c.taticas = [];
     if(!Array.isArray(c.weeks)) c.weeks = [];
-    c.taticas.forEach(t=>{
-      if(typeof t.week !== 'number') t.week = t.startWeek || 1;
-      delete t.startWeek; delete t.endWeek;
-    });
+    c.taticas = explodeTaticasToSingleWeek(c.taticas);
   });
   state.areas.forEach(a=>{
     if(typeof a.vision === 'string') a.vision = a.vision.split(/\n+/).map(s=>s.trim()).filter(Boolean);
@@ -565,73 +516,15 @@ function migrateState(parsed){
   if(typeof state.l3Cover.posY !== 'number') state.l3Cover.posY = 50;
 }
 
-function loadLocalOnly(){
+async function loadState(){
   try{
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if(raw) migrateState(JSON.parse(raw));
+    const result = await window.storage.get(STORAGE_KEY, false);
+    if(result && result.value){
+      migrateState(JSON.parse(result.value));
+    }
   }catch(e){ /* defaults stand */ }
-  setSyncStatus('salvo só neste navegador');
   renderAll();
 }
-
-async function loadFromCloud(){
-  setSyncStatus('carregando da nuvem…');
-  try{
-    const doc = await db.collection('users').doc(currentUser.uid).collection('appdata').doc('state').get();
-    if(doc.exists && doc.data().json){
-      migrateState(JSON.parse(doc.data().json));
-    } else {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if(raw) migrateState(JSON.parse(raw));
-    }
-    setSyncStatus('sincronizado ✓');
-  }catch(e){
-    console.error('cloud load failed, using local cache', e);
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if(raw) migrateState(JSON.parse(raw));
-    setSyncStatus('sem conexão — mostrando cópia local');
-  }
-  renderAll();
-}
-
-function initApp(){
-  const configFilled = firebaseConfig.apiKey && firebaseConfig.apiKey !== 'COLE_AQUI';
-  if(!configFilled || typeof firebase === 'undefined'){
-    document.getElementById('cloudSetupWarning').style.display = 'block';
-    document.getElementById('loginOverlay').style.display = 'none';
-    loadLocalOnly();
-    return;
-  }
-  cloudEnabled = true;
-  firebase.initializeApp(firebaseConfig);
-  db = firebase.firestore();
-  firebase.auth().onAuthStateChanged(user=>{
-    if(user){
-      currentUser = user;
-      document.getElementById('loginOverlay').style.display = 'none';
-      document.getElementById('logoutBtn').style.display = 'inline';
-      document.getElementById('logoutSep').style.display = 'inline';
-      loadFromCloud();
-    } else {
-      currentUser = null;
-      document.getElementById('loginOverlay').style.display = 'flex';
-      document.getElementById('logoutBtn').style.display = 'none';
-      document.getElementById('logoutSep').style.display = 'none';
-    }
-  });
-}
-document.getElementById('loginForm').addEventListener('submit', e=>{
-  e.preventDefault();
-  const email = document.getElementById('loginEmail').value;
-  const pass = document.getElementById('loginPassword').value;
-  const errEl = document.getElementById('loginError');
-  errEl.textContent = '';
-  firebase.auth().signInWithEmailAndPassword(email, pass)
-    .catch(()=>{ errEl.textContent = 'E-mail ou senha incorretos.'; });
-});
-document.getElementById('logoutBtn').addEventListener('click', ()=>{
-  if(cloudEnabled) firebase.auth().signOut();
-});
 
 /* ---------- EXPORT / IMPORT (backup between devices) ---------- */
 function exportState(){
@@ -827,7 +720,7 @@ function readAndCompressImage(file, maxW, cb){
       const canvas = document.createElement('canvas');
       canvas.width = w; canvas.height = h;
       canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-      cb(canvas.toDataURL('image/jpeg', 0.68));
+      cb(canvas.toDataURL('image/jpeg', 0.78));
     };
     img.src = ev.target.result;
   };
@@ -889,7 +782,7 @@ document.getElementById('coverFileInput').addEventListener('change', e=>{
   const file = e.target.files[0];
   if(!file || !pendingCoverKey) return;
   const key = pendingCoverKey;
-  readAndCompressImage(file, 1000, dataUrl=>{
+  readAndCompressImage(file, 1400, dataUrl=>{
     state[key] = { src: dataUrl, posY: 50 };
     renderCoverBanner(key === 'visaoCover' ? 'visaoCoverContainer' : 'l3CoverContainer', key);
     scheduleSave();
@@ -968,24 +861,39 @@ function renderMetasList(){
   state.metas.forEach((m, mi)=>{
     const taticas = state.taticas.filter(t=>t.metaId === m.id);
     const card = document.createElement('div'); card.className = 'meta-card';
-    let taticasHtml = '';
-    taticas.forEach(t=>{
-      taticasHtml += `<div class="tatica-item">
-        <div class="tatica-row">
-          <input type="text" value="${escapeHtml(t.text)}" data-tid="${t.id}" data-field="text" placeholder="ação, começando com um verbo">
-          <select data-tid="${t.id}" data-field="type">
-            <option value="recorrente" ${t.type==='recorrente'?'selected':''}>tarefa recorrente</option>
-            <option value="unica" ${t.type==='unica'?'selected':''}>estratégia (1 vez)</option>
-          </select>
-          ${t.type==='recorrente'
-            ? `<input type="number" min="1" max="30" value="${t.target}" data-tid="${t.id}" data-field="target" title="vezes/semana">`
-            : `<span class="tatica-spacer"></span>`}
-          <select data-tid="${t.id}" data-field="week" title="semana">${weekOptions(t.week)}</select>
-          <button class="dup-x" data-tid="${t.id}" data-action="dup-tatica" title="duplicar para a próxima semana">⧉</button>
-          <button class="del-x" data-tid="${t.id}" data-action="del-tatica">✕</button>
+    let weeksHtml = '';
+    for(let wn=1; wn<=12; wn++){
+      const weekTaticas = taticas.filter(t=>(t.week||1)===wn);
+      const wKey = `${m.id}-${wn}`;
+      const isOpen = metasOpenWeeks.has(wKey);
+      let rowsHtml = '';
+      weekTaticas.forEach(t=>{
+        rowsHtml += `<div class="tatica-item">
+          <div class="tatica-row">
+            <input type="text" value="${escapeHtml(t.text)}" data-tid="${t.id}" data-field="text" placeholder="ação, começando com um verbo">
+            <select data-tid="${t.id}" data-field="type">
+              <option value="recorrente" ${t.type==='recorrente'?'selected':''}>tarefa recorrente</option>
+              <option value="unica" ${t.type==='unica'?'selected':''}>estratégia (1 vez)</option>
+            </select>
+            ${t.type==='recorrente'
+              ? `<input type="number" min="1" max="30" value="${t.target}" data-tid="${t.id}" data-field="target" title="vezes/semana">`
+              : `<span class="tatica-spacer"></span>`}
+            <button class="del-x" data-tid="${t.id}" data-action="del-tatica">✕</button>
+          </div>
+        </div>`;
+      });
+      const countTxt = weekTaticas.length ? `${weekTaticas.length} tarefa${weekTaticas.length>1?'s':''}` : 'vazia';
+      weeksHtml += `<div class="week-section">
+        <div class="week-section-head week-section-toggle" data-action="toggle-week-section" data-key="${wKey}">
+          <span class="week-section-title">${isOpen?'▾':'▸'} Semana ${wn}</span>
+          <span class="week-section-count">${countTxt}</span>
         </div>
+        ${isOpen ? `<div class="week-section-body">
+          <div class="tatica-list">${rowsHtml || '<p class="empty-note" style="padding:4px 0;">nenhuma tarefa nesta semana</p>'}</div>
+          <button class="add-btn add-btn-sm" data-action="add-tatica" data-mid="${m.id}" data-week="${wn}">+ tarefa</button>
+        </div>` : ''}
       </div>`;
-    });
+    }
     card.innerHTML = `
       <div class="meta-top">
         <textarea data-mid="${m.id}" data-field="text" placeholder="meta específica e mensurável">${escapeHtml(m.text)}</textarea>
@@ -997,9 +905,8 @@ function renderMetasList(){
         <input type="number" step="any" value="${m.lagTarget!==undefined && m.lagTarget!==null ? m.lagTarget : ''}" data-mid="${m.id}" data-field="lagTarget" placeholder="valor final desejado">
       </div>
       <p class="lag-target-hint">Coloque o valor final que você quer atingir, não a diferença. Ex: se está em 80 e quer chegar em 75, coloque 75 — não 5.</p>
-      <div class="tatica-list">${taticasHtml || '<p class="empty-note" style="padding:6px 0;">nenhuma tática ainda</p>'}</div>
+      <div class="week-sections">${weeksHtml}</div>
       <div class="meta-actions">
-        <button class="add-btn" data-action="add-tatica" data-mid="${m.id}">+ tática</button>
         <button class="remove-link" data-action="del-meta" data-mid="${m.id}">remover meta</button>
       </div>`;
     list.appendChild(card);
@@ -1023,7 +930,6 @@ function renderMetasList(){
       const t = state.taticas.find(x=>x.id===tid);
       let val = e.target.value;
       if(field==='target') val = Math.max(1, parseInt(val)||1);
-      if(field==='week') val = parseInt(val);
       t[field] = val;
       if(field==='type'){ renderMetasList(); }
       renderWeekPanel(); renderWeekPills();
@@ -1032,18 +938,16 @@ function renderMetasList(){
   });
   list.querySelectorAll('[data-action="add-tatica"]').forEach(btn=>{
     btn.addEventListener('click', ()=>{
-      state.taticas.push({ id: uid('t'), metaId: btn.dataset.mid, text:'', type:'recorrente', target:3, week:1 });
+      const wk = parseInt(btn.dataset.week) || 1;
+      state.taticas.push({ id: uid('t'), metaId: btn.dataset.mid, text:'', type:'recorrente', target:3, week: wk });
       renderMetasList(); renderWeekPanel(); renderWeekPills(); scheduleSave();
     });
   });
-  list.querySelectorAll('[data-action="dup-tatica"]').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      const tid = btn.dataset.tid;
-      const t = state.taticas.find(x=>x.id===tid);
-      if(!t) return;
-      const newWeek = Math.min(12, (t.week||1)+1);
-      state.taticas.push({ id: uid('t'), metaId: t.metaId, text: t.text, type: t.type, target: t.target, week: newWeek });
-      renderMetasList(); renderWeekPanel(); renderWeekPills(); scheduleSave();
+  list.querySelectorAll('[data-action="toggle-week-section"]').forEach(head=>{
+    head.addEventListener('click', ()=>{
+      const key = head.dataset.key;
+      if(metasOpenWeeks.has(key)) metasOpenWeeks.delete(key); else metasOpenWeeks.add(key);
+      renderMetasList();
     });
   });
   list.querySelectorAll('[data-action="del-tatica"]').forEach(btn=>{
@@ -1116,7 +1020,7 @@ function renderWeekPanel(){
   if(state.metas.length === 0){
     bodyHtml = `<p class="empty-note">Cadastre metas e táticas na aba "Metas de 12 Semanas" pra começar.</p>`;
   } else if(active.length === 0){
-    bodyHtml = `<p class="empty-note">Nenhuma tática ativa nesta semana. Toda tática (recorrente ou estratégia) vale para a semana marcada nela; use o botão ⧉ para duplicá-la para a semana seguinte.</p>`;
+    bodyHtml = `<p class="empty-note">Nenhuma tática ativa nesta semana. Adicione tarefas para esta semana na aba "Metas de 12 Semanas", dentro da seção "Semana ${selectedWeek+1}" de cada meta.</p>`;
   } else {
     active.forEach(t=>{
       const target = t.type==='recorrente' ? t.target : 1;
@@ -1379,7 +1283,7 @@ function renderHistorico(){
     cMetas.forEach(m=>{
       const taticasForMeta = cTaticas.filter(t=>t.metaId===m.id);
       let taticasLines = taticasForMeta.map(t=>{
-        const kind = t.type==='recorrente' ? `${t.target}x/sem, semana ${t.week}` : `estratégia, semana ${t.week}`;
+        const kind = t.type==='recorrente' ? `${t.target}x/sem — semana ${t.week}` : `estratégia, semana ${t.week}`;
         return `<li>${escapeHtml(t.text||'(sem nome)')} — ${kind}</li>`;
       }).join('');
       metasListHtml += `<div class="history-meta-block">
@@ -1531,7 +1435,7 @@ function renderAll(){
   renderTeamFields();
 }
 
-initApp();
+loadState();
 </script>
 </body>
 </html>
